@@ -34,11 +34,14 @@ else {
 db.Player = initPlayerModel(sequelize, Sequelize.DataTypes);
 db.Game = initGameModel(sequelize, Sequelize.DataTypes);
 
-db.Player.hasMany(db.Game);
-db.Game.belongsTo(db.Player);
+db.Player.belongsToMany(db.Game, { through: 'player_games' });
+db.Game.belongsToMany(db.Player, { through: 'player_games' });
 
-db.Player.belongsToMany(db.Game, { through: 'players_games' });
-db.Game.belongsToMany(db.Player, { through: 'players_games' });
+// db.Game.belongsTo(db.Player);
+db.Player.hasMany(db.Game, {
+  as: 'winnerId',
+  foreignKey: 'winner_id',
+});
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

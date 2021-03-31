@@ -53,11 +53,12 @@ module.exports = {
       turn: {
         type: Sequelize.INTEGER,
       },
-      winner: {
+      winner_id: {
         type: Sequelize.INTEGER,
         references: {
           model: 'players',
           key: 'id',
+          as: 'winnerId',
         },
       },
       created_at: {
@@ -71,7 +72,7 @@ module.exports = {
     });
 
     // players_games table
-    await queryInterface.createTable('players_games', {
+    await queryInterface.createTable('player_games', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -104,7 +105,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('players_games');
+    await queryInterface.dropTable('player_games');
     await queryInterface.dropTable('players');
     await queryInterface.dropTable('games');
   },

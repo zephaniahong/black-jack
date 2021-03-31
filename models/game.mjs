@@ -17,11 +17,12 @@ export default function initGameModel(sequelize, DataTypes) {
       turn: {
         type: DataTypes.INTEGER,
       },
-      winner: {
+      winnerId: {
         type: DataTypes.INTEGER,
         references: {
           model: 'players',
           key: 'id',
+          as: 'winnerId',
         },
       },
       createdAt: {
