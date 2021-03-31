@@ -1,9 +1,24 @@
 import { resolve } from 'path';
 import db from './models/index.mjs';
+import initGamesController from './controllers/game.mjs';
+import initPlayersController from './controllers/player.mjs';
 
 export default function bindRoutes(app) {
+  const GamesController = initGamesController(db);
+  const PlayersController = initPlayersController(db);
+  // login page
+  app.get('/login', PlayersController.login);
+  // verify login details are correct
+  app.post('/login', PlayersController.verifyLogin);
+
+  // dashboard
+  app.get('/dashboard/:playerId', PlayersController.dashboard);
+
+  // when player clicks on new game on the dashboard
+  app.post('/newGame', GamesController.newGame);
   // special JS page. Include the webpack index.html file
-  app.get('/home', (request, response) => {
+  // new game
+  app.get('/game/:gameId', (request, response) => {
     response.sendFile(resolve('dist', 'main.html'));
   });
 }
