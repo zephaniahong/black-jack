@@ -1,0 +1,15 @@
+<%-include('partials/header')%>
+<div class="container">
+  <div id="stats">
+    <h3>Stats</h3>
+    <p>Wins: <%=playerStats.wins%></p>
+    <p>Losses: <%=playerStats.losses%></p>
+    <p>Money: <%=playerStats.money%></p>
+  </div>
+  <form action="/newGame" method="POST">
+    <button type="submit" name="newGame" class="btn btn-primary">
+      New Game
+    </button>
+  </form>
+</div>
+<%-include('partials/footer')%>
