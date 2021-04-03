@@ -247,6 +247,7 @@ export default function initGamesController(db) {
     }
 
     res.send({
+      gameId: game.id,
       dealerHand: game.gameData.dealerHand,
       player1Hand: game.gameData.player1Hand,
       player2Hand: game.gameData.player2Hand,
@@ -256,7 +257,68 @@ export default function initGamesController(db) {
       player2Id,
     });
   };
+
+  // when player clicks on hit button
+  const hit = async (req, res) => {
+    const gameId = Number(req.params.gameId);
+    const loggedInPlayer = Number(req.cookies.playerId);
+    let opponent;
+
+    // get info of game
+    try {
+      const game = await db.Game.findOne({
+        where: {
+          id: gameId,
+        },
+        include: 'players',
+      });
+
+      // get opponent id
+      for (let i = 0; i < game.players.length; i += 1) {
+        if (game.players[i].id !== loggedInPlayer) {
+          opponent = game.players[i].id;
+        }
+      }
+      // determines who is player 1 and 2 based on who has the bigger player id
+      let player1Id;
+      let player2Id;
+      if (loggedInPlayer < opponent) {
+        player1Id = loggedInPlayer;
+        player2Id = opponent;
+      } else {
+        player1Id = opponent;
+        player2Id = loggedInPlayer;
+      }
+
+      // pop card of deck and deal to logged in player
+      const newCard = game.gameData.cardDeck.pop();
+      if (loggedInPlayer === player1Id) {
+        game.gameData.player1Hand.push(newCard);
+      } else {
+        game.gameData.player2Hand.push(newCard);
+      }
+      const updatedGame = await db.Game.findByPk(gameId);
+      await updatedGame.update({
+        gameData: game.gameData,
+        status: 'in-progress',
+        turn: opponent,
+        winnerId: null,
+      });
+      res.send({
+        gameId: game.id,
+        dealerHand: game.gameData.dealerHand,
+        player1Hand: game.gameData.player1Hand,
+        player2Hand: game.gameData.player2Hand,
+        status: game.status,
+        turn: game.turn,
+        player1Id,
+        player2Id,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
   return {
-    newGame, ready, gameInfo,
+    newGame, ready, gameInfo, hit,
   };
 }

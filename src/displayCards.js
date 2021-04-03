@@ -1,16 +1,36 @@
 export default function displayCards(currentGame) {
-  console.log(currentGame);
+  // clear all existing cards
+  const elements = document.getElementsByClassName('card');
+  while (elements.length > 0) {
+    elements[0].remove();
+  }
+
   // dealer hand
-  const dealerP = document.querySelectorAll('#dealerTable p');
-  dealerP[0].innerText = `${currentGame.dealerHand[0].name} of ${currentGame.dealerHand[0].suit}`;
-  dealerP[1].innerText = `${currentGame.dealerHand[1].name} of ${currentGame.dealerHand[1].suit}`;
+  const dealerTable = document.querySelector('#dealerTable');
+  const player1Table = document.querySelector('#player1Table');
+  const player2Table = document.querySelector('#player2Table');
+
+  // dealer hand
+  for (let i = 0; i < currentGame.dealerHand.length; i += 1) {
+    const dealerHand = document.createElement('p');
+    dealerHand.classList.add('card');
+    dealerHand.innerText = `${currentGame.dealerHand[i].name} of ${currentGame.dealerHand[i].suit}`;
+    dealerTable.appendChild(dealerHand);
+  }
 
   // player 1 hand
-  const player1P = document.querySelectorAll('#player1Table p');
-  player1P[0].innerText = `${currentGame.player1Hand[0].name} of ${currentGame.player1Hand[0].suit}`;
-  player1P[1].innerText = `${currentGame.player1Hand[1].name} of ${currentGame.player1Hand[1].suit}`;
+  for (let i = 0; i < currentGame.player1Hand.length; i += 1) {
+    const player1Hand = document.createElement('p');
+    player1Hand.classList.add('card');
+    player1Hand.innerText = `${currentGame.player1Hand[i].name} of ${currentGame.player1Hand[i].suit}`;
+    player1Table.appendChild(player1Hand);
+  }
 
-  const player2P = document.querySelectorAll('#player2Table p');
-  player2P[0].innerText = `${currentGame.player2Hand[0].name} of ${currentGame.player2Hand[0].suit}`;
-  player2P[1].innerText = `${currentGame.player2Hand[1].name} of ${currentGame.player2Hand[1].suit}`;
+  // player 2 hand
+  for (let i = 0; i < currentGame.player2Hand.length; i += 1) {
+    const player2Hand = document.createElement('p');
+    player2Hand.classList.add('card');
+    player2Hand.innerText = `${currentGame.player2Hand[i].name} of ${currentGame.player2Hand[i].suit}`;
+    player2Table.appendChild(player2Hand);
+  }
 }

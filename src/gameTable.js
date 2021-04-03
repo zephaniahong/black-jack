@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { Button } from 'bootstrap';
 import displayCards from './displayCards.js';
 
 // get game id to set as global variable
@@ -64,8 +63,6 @@ export default function createGameElements(currentGame) {
       .then((response) => {
         const updatedGame = response.data;
         if (updatedGame.status === 'in-progress') {
-          console.log(updatedGame);
-          console.log('starting game!');
           createGameElements(updatedGame);
         }
       });
@@ -79,6 +76,15 @@ export default function createGameElements(currentGame) {
   const standButton = document.createElement('button');
   hitButton.innerText = 'HIT';
   standButton.innerText = 'STAND';
+  hitButton.addEventListener('click', () => {
+    axios.post(`/game/${gameId}/hit`)
+      .then((response) => {
+        const updatedGame = response.data;
+        displayCards(updatedGame);
+        console.log(updatedGame);
+      });
+  });
+
   actionTable.appendChild(betAmount);
   actionTable.appendChild(hitButton);
   actionTable.appendChild(standButton);

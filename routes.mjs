@@ -28,4 +28,7 @@ export default function bindRoutes(app) {
 
   // send gameinfo to browser
   app.get('/game/:gameId/gameInfo', GamesController.gameInfo);
+
+  // update db when player clicks on hit
+  app.post('/game/:gameId/hit', GamesController.hit);
 }
