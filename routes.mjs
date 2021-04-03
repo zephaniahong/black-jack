@@ -24,5 +24,8 @@ export default function bindRoutes(app) {
   });
 
   // update db of bet amount and status when player clicks ready
-  app.post('/game/:gameId/ready', GamesController.ready);
+  app.post('/game/:gameId/ready/', GamesController.ready);
+
+  // send gameinfo to browser
+  app.get('/game/:gameId/gameInfo', GamesController.gameInfo);
 }

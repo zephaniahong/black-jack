@@ -2,6 +2,7 @@ import jsSHA from 'jssha';
 import sequelizePackage from 'sequelize';
 
 const { Op } = sequelizePackage;
+
 export default function initPlayersController(db) {
   const login = async (req, res) => {
     res.render('login');
@@ -33,31 +34,22 @@ export default function initPlayersController(db) {
   };
 
   const dashboard = async (req, res) => {
-    const { playerId } = req.cookies;
+    const playerId = Number(req.cookies.playerId);
     try {
       // get player stats
       const player = await db.Player.findOne({
         where: {
           id: playerId,
         },
+        include: 'games',
       });
-      // find all games that logged in player is involved in
-      const playerGames = await db.Game.findAll({
-        include: [{
-          model: db.Player,
-          where: {
-            id: playerId,
-          },
-        }],
-      });
-      const games = playerGames;
-      console.log(games);
+      console.log(player.games);
       // array of all game ids that logged in user is in
       const gameArray = [];
-      for (let i = 0; i < games.length; i += 1) {
-        gameArray.push(games[i].id);
+      for (let i = 0; i < player.games.length; i += 1) {
+        gameArray.push(player.games[i].id);
       }
-      const opponent = await db.Game.findAll({
+      const opponents = await db.Game.findAll({
         where: {
           id: {
             [Op.in]: gameArray,
@@ -65,9 +57,18 @@ export default function initPlayersController(db) {
         },
         include: 'players',
       });
-      console.log(opponent);
+
+      // array of id of opponents
+      const opponentArray = [];
+      for (let i = 0; i < opponents.length; i += 1) {
+        for (let j = 0; j < opponents[i].players.length; j += 1) {
+          if (opponents[i].players[j].id !== playerId) {
+            opponentArray.push(opponents[i].players[j].id);
+          }
+        }
+      }
       const playerStats = player.dataValues;
-      res.render('dashboard', { playerStats, games });
+      res.render('dashboard', { playerStats, gameArray, opponentArray });
     } catch (err) {
       console.log(err);
     }

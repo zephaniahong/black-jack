@@ -103,14 +103,10 @@ const makeDeck = function () {
  * ========================================================
  */
 
-// global variables
-let loggedInPlayer;
-let opponent;
-let player1Id;
-let player2Id;
 export default function initGamesController(db) {
   const newGame = async (req, res) => {
-    loggedInPlayer = Number(req.cookies.playerId);
+    const loggedInPlayer = Number(req.cookies.playerId);
+    let opponent;
     // find random opponent
     const numberOfPlayers = await db.Player.count();
     opponent = Math.floor(Math.random() * numberOfPlayers) + 1;
@@ -119,9 +115,9 @@ export default function initGamesController(db) {
         opponent = Math.floor(Math.random() * numberOfPlayers) + 1;
       }
     }
-    console.log(loggedInPlayer);
-    console.log(opponent);
     // determines who is player 1 and 2 based on who has the bigger player id
+    let player1Id;
+    let player2Id;
     if (loggedInPlayer < opponent) {
       player1Id = loggedInPlayer;
       player2Id = opponent;
@@ -164,23 +160,44 @@ export default function initGamesController(db) {
 
   const ready = async (req, res) => {
     const betAmount = Number(req.query.betAmount);
-    const { gameId } = req.params;
-    const { playerId } = req.cookies;
-    // Update game status and bet amount
+    const gameId = Number(req.params.gameId);
+    const loggedInPlayer = Number(req.cookies.playerId);
+    let opponent;
+
+    // get info of game
     const game = await db.Game.findOne({
       where: {
         id: gameId,
       },
       include: 'players',
     });
+
+    // get opponent id
+    for (let i = 0; i < game.players.length; i += 1) {
+      if (game.players[i].id !== loggedInPlayer) {
+        opponent = game.players[i].id;
+      }
+    }
+
+    // determines who is player 1 and 2 based on who has the bigger player id
+    let player1Id;
+    let player2Id;
+    if (loggedInPlayer < opponent) {
+      player1Id = loggedInPlayer;
+      player2Id = opponent;
+    } else {
+      player1Id = opponent;
+      player2Id = loggedInPlayer;
+    }
+
     let status;
     let turn;
     if (game.turn === 0) {
       status = 'betting in-progress';
       turn = opponent;
     } else if (game.turn === loggedInPlayer) {
-      status = 'start game';
-      turn = 0;
+      status = 'in-progress';
+      turn = player1Id;
     }
     await game.update({
       gameData: game.gameData,
@@ -188,7 +205,6 @@ export default function initGamesController(db) {
       turn,
       winnerId: null,
     });
-    console.log(turn);
     res.send({
       gameId: game.id,
       gameData: game.gameData,
@@ -199,7 +215,48 @@ export default function initGamesController(db) {
     });
   };
 
+  const gameInfo = async (req, res) => {
+    const { gameId } = req.params;
+    const loggedInPlayer = Number(req.cookies.playerId);
+    let opponent;
+
+    // get info of game
+    const game = await db.Game.findOne({
+      where: {
+        id: gameId,
+      },
+      include: 'players',
+    });
+
+    // get opponent id
+    for (let i = 0; i < game.players.length; i += 1) {
+      if (game.players[i].id !== loggedInPlayer) {
+        opponent = game.players[i].id;
+      }
+    }
+
+    // determines who is player 1 and 2 based on who has the bigger player id
+    let player1Id;
+    let player2Id;
+    if (loggedInPlayer < opponent) {
+      player1Id = loggedInPlayer;
+      player2Id = opponent;
+    } else {
+      player1Id = opponent;
+      player2Id = loggedInPlayer;
+    }
+
+    res.send({
+      dealerHand: game.gameData.dealerHand,
+      player1Hand: game.gameData.player1Hand,
+      player2Hand: game.gameData.player2Hand,
+      status: game.status,
+      turn: game.turn,
+      player1Id,
+      player2Id,
+    });
+  };
   return {
-    newGame, ready,
+    newGame, ready, gameInfo,
   };
 }
