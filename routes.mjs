@@ -19,6 +19,10 @@ export default function bindRoutes(app) {
   // special JS page. Include the webpack index.html file
   // new game
   app.get('/game/:gameId', (request, response) => {
+    const { gameId } = request.params;
     response.sendFile(resolve('dist', 'main.html'));
   });
+
+  // update db of bet amount and status when player clicks ready
+  app.post('/game/:gameId/ready', GamesController.ready);
 }

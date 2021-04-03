@@ -102,17 +102,41 @@ const makeDeck = function () {
  * ========================================================
  * ========================================================
  */
+
+// global variables
+let loggedInPlayer;
+let opponent;
+let player1Id;
+let player2Id;
 export default function initGamesController(db) {
   const newGame = async (req, res) => {
-    // hard code player 2 as opponent for now
-    const player1Id = req.cookies.playerId;
-    const player2Id = 2;
+    loggedInPlayer = Number(req.cookies.playerId);
+    // find random opponent
+    const numberOfPlayers = await db.Player.count();
+    opponent = Math.floor(Math.random() * numberOfPlayers) + 1;
+    if (opponent === loggedInPlayer) {
+      while (opponent === loggedInPlayer) {
+        opponent = Math.floor(Math.random() * numberOfPlayers) + 1;
+      }
+    }
+    console.log(loggedInPlayer);
+    console.log(opponent);
+    // determines who is player 1 and 2 based on who has the bigger player id
+    if (loggedInPlayer < opponent) {
+      player1Id = loggedInPlayer;
+      player2Id = opponent;
+    } else {
+      player1Id = opponent;
+      player2Id = loggedInPlayer;
+    }
     const cardDeck = shuffleCards(makeDeck());
-    const player1Hand = cardDeck.pop();
-    const player2Hand = cardDeck.pop();
+    const dealerHand = [cardDeck.pop(), cardDeck.pop()];
+    const player1Hand = [cardDeck.pop(), cardDeck.pop()];
+    const player2Hand = [cardDeck.pop(), cardDeck.pop()];
     const newGame = {
       gameData: {
         cardDeck,
+        dealerHand,
         player1Hand,
         player2Hand,
       },
@@ -124,7 +148,7 @@ export default function initGamesController(db) {
       // get both players that are involved in the game
       const players = await db.Player.findAll({
         where: {
-          [Op.or]: [{ id: Number(player1Id) }, { id: Number(player2Id) }],
+          [Op.or]: [{ id: Number(loggedInPlayer) }, { id: Number(opponent) }],
         },
       });
       // create a new game instance in the db
@@ -132,13 +156,50 @@ export default function initGamesController(db) {
       // add a row for each user to the join table for the associated game id
       await game.addPlayer(players[0]);
       await game.addPlayer(players[1]);
-      // send players' hands and game id to browser
       res.redirect(`/game/${game.id}`);
     } catch (err) {
       console.log(err);
     }
   };
+
+  const ready = async (req, res) => {
+    const betAmount = Number(req.query.betAmount);
+    const { gameId } = req.params;
+    const { playerId } = req.cookies;
+    // Update game status and bet amount
+    const game = await db.Game.findOne({
+      where: {
+        id: gameId,
+      },
+      include: 'players',
+    });
+    let status;
+    let turn;
+    if (game.turn === 0) {
+      status = 'betting in-progress';
+      turn = opponent;
+    } else if (game.turn === loggedInPlayer) {
+      status = 'start game';
+      turn = 0;
+    }
+    await game.update({
+      gameData: game.gameData,
+      status,
+      turn,
+      winnerId: null,
+    });
+    console.log(turn);
+    res.send({
+      gameId: game.id,
+      gameData: game.gameData,
+      status: game.status,
+      turn: game.turn,
+      player1Id,
+      player2Id,
+    });
+  };
+
   return {
-    newGame,
+    newGame, ready,
   };
 }

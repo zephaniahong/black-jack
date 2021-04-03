@@ -11,5 +11,27 @@
       New Game
     </button>
   </form>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Game ID</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (let i =0; i < games.length; i += 1) {%>
+      <tr>
+        <th scope="row">1</th>
+        <td><%=games[i].id%></td>
+        <td>
+          <a href="/game/<%=games[i].id%>"
+            ><button class="btn btn-primary">Enter</button></a
+          >
+        </td>
+      </tr>
+      <%}%>
+    </tbody>
+  </table>
 </div>
 <%-include('partials/footer')%>
