@@ -61,16 +61,20 @@ const makeDeck = function () {
     let rankCounter = 1;
     while (rankCounter <= 13) {
       let cardName = rankCounter;
-
+      let value = rankCounter;
       // 1, 11, 12 ,13
       if (cardName === 1) {
         cardName = 'ace';
+        value = 1;
       } else if (cardName === 11) {
         cardName = 'jack';
+        value = 10;
       } else if (cardName === 12) {
         cardName = 'queen';
+        value = 10;
       } else if (cardName === 13) {
         cardName = 'king';
+        value = 10;
       }
 
       // make a single card object variable
@@ -78,6 +82,7 @@ const makeDeck = function () {
         name: cardName,
         suit: currentSuit,
         rank: rankCounter,
+        value,
       };
 
       // add the card to the deck
@@ -135,9 +140,11 @@ export default function initGamesController(db) {
         dealerHand,
         player1Hand,
         player2Hand,
+        player1BetAmount: 0,
+        player2BetAmount: 0,
       },
       status: 'betting in-progress',
-      turn: 0,
+      turn: 1,
       winnerId: null,
     };
     try {
@@ -192,26 +199,56 @@ export default function initGamesController(db) {
 
     let status;
     let turn;
-    if (game.turn === 0) {
+    if (game.turn === player1Id) {
       status = 'betting in-progress';
       turn = opponent;
-    } else if (game.turn === loggedInPlayer) {
+    } else {
       status = 'in-progress';
       turn = player1Id;
     }
-    await game.update({
-      gameData: game.gameData,
-      status,
-      turn,
-      winnerId: null,
-    });
+
+    // determine who's bet amount to update
+    if (loggedInPlayer === player1Id) {
+      await game.update({
+        gameData: {
+          cardDeck: game.gameData.cardDeck,
+          dealerHand: game.gameData.dealerHand,
+          player1Hand: game.gameData.player1Hand,
+          player2Hand: game.gameData.player2Hand,
+          player1BetAmount: betAmount,
+          player2BetAmount: game.gameData.player2BetAmount,
+        },
+        status,
+        turn,
+        winnerId: null,
+      });
+    } else {
+      await game.update({
+        gameData: {
+          cardDeck: game.gameData.cardDeck,
+          dealerHand: game.gameData.dealerHand,
+          player1Hand: game.gameData.player1Hand,
+          player2Hand: game.gameData.player2Hand,
+          player1BetAmount: game.gameData.player1BetAmount,
+          player2BetAmount: betAmount,
+        },
+        status,
+        turn,
+        winnerId: null,
+      });
+    }
+
     res.send({
       gameId: game.id,
-      gameData: game.gameData,
+      dealerHand: game.gameData.dealerHand,
+      player1Hand: game.gameData.player1Hand,
+      player2Hand: game.gameData.player2Hand,
       status: game.status,
       turn: game.turn,
       player1Id,
       player2Id,
+      player1BetAmount: game.gameData.player1BetAmount,
+      player2BetAmount: game.gameData.player2BetAmount,
     });
   };
 
@@ -255,6 +292,8 @@ export default function initGamesController(db) {
       turn: game.turn,
       player1Id,
       player2Id,
+      player1BetAmount: game.gameData.player1BetAmount,
+      player2BetAmount: game.gameData.player2BetAmount,
     });
   };
 
@@ -289,21 +328,24 @@ export default function initGamesController(db) {
         player1Id = opponent;
         player2Id = loggedInPlayer;
       }
-
-      // pop card of deck and deal to logged in player
-      const newCard = game.gameData.cardDeck.pop();
-      if (loggedInPlayer === player1Id) {
-        game.gameData.player1Hand.push(newCard);
-      } else {
-        game.gameData.player2Hand.push(newCard);
+      // only allow to hit card if its the logged in player's turn
+      if (game.turn === loggedInPlayer) {
+        // pop card of deck and deal to logged in player
+        const newCard = game.gameData.cardDeck.pop();
+        if (loggedInPlayer === player1Id) {
+          game.gameData.player1Hand.push(newCard);
+        } else {
+          game.gameData.player2Hand.push(newCard);
+        }
+        const updatedGame = await db.Game.findByPk(gameId);
+        await updatedGame.update({
+          gameData: game.gameData,
+          status: 'in-progress',
+          turn: loggedInPlayer,
+          winnerId: null,
+        });
       }
-      const updatedGame = await db.Game.findByPk(gameId);
-      await updatedGame.update({
-        gameData: game.gameData,
-        status: 'in-progress',
-        turn: opponent,
-        winnerId: null,
-      });
+
       res.send({
         gameId: game.id,
         dealerHand: game.gameData.dealerHand,
@@ -313,12 +355,107 @@ export default function initGamesController(db) {
         turn: game.turn,
         player1Id,
         player2Id,
+        player1BetAmount: game.gameData.player1BetAmount,
+        player2BetAmount: game.gameData.player2BetAmount,
       });
     } catch (err) {
       console.log(err);
     }
   };
+
+  const stand = async (req, res) => {
+    const gameId = Number(req.params.gameId);
+    const loggedInPlayer = Number(req.cookies.playerId);
+    let opponent;
+
+    // get info of game
+    try {
+      const game = await db.Game.findOne({
+        where: {
+          id: gameId,
+        },
+        include: 'players',
+      });
+
+      // get opponent id
+      for (let i = 0; i < game.players.length; i += 1) {
+        if (game.players[i].id !== loggedInPlayer) {
+          opponent = game.players[i].id;
+        }
+      }
+      // determines who is player 1 and 2 based on who has the bigger player id
+      let player1Id;
+      let player2Id;
+      if (loggedInPlayer < opponent) {
+        player1Id = loggedInPlayer;
+        player2Id = opponent;
+      } else {
+        player1Id = opponent;
+        player2Id = loggedInPlayer;
+      }
+
+      // only allow logged in player to click stand button
+      if (game.turn === loggedInPlayer) {
+        // TODO if player 2 hits stand, deal cards for dealer
+        if (game.turn === player2Id) {
+          const { dealerHand } = game.gameData;
+
+          // check sum of dealer hand and deal while less than 17
+          let dealerHandCount = 0;
+          for (let i = 0; i < dealerHand.length; i += 1) {
+            dealerHandCount += dealerHand[i].value;
+          }
+          while (dealerHandCount < 17) {
+            const newCard = game.gameData.cardDeck.pop();
+            game.gameData.dealerHand.push(newCard);
+            dealerHandCount += newCard.value;
+          }
+
+          const updatedGame = await db.Game.findByPk(gameId);
+          await updatedGame.update({
+            gameData: game.gameData,
+            status: 'round over',
+            turn: 0,
+            winnerId: null,
+          });
+          res.send({
+            gameId: updatedGame.id,
+            dealerHand: updatedGame.gameData.dealerHand,
+            player1Hand: updatedGame.gameData.player1Hand,
+            player2Hand: updatedGame.gameData.player2Hand,
+            status: updatedGame.status,
+            turn: updatedGame.turn,
+            player1Id,
+            player2Id,
+            player1BetAmount: updatedGame.gameData.player1BetAmount,
+            player2BetAmount: updatedGame.gameData.player2BetAmount,
+          });
+        } else {
+          await game.update({
+            gameData: game.gameData,
+            status: 'in-progress',
+            turn: opponent,
+            winnerId: null,
+          });
+          res.send({
+            gameId: game.id,
+            dealerHand: game.gameData.dealerHand,
+            player1Hand: game.gameData.player1Hand,
+            player2Hand: game.gameData.player2Hand,
+            status: game.status,
+            turn: game.turn,
+            player1Id,
+            player2Id,
+            player1BetAmount: game.gameData.player1BetAmount,
+            player2BetAmount: game.gameData.player2BetAmount,
+          });
+        } }
+    }
+    catch (err) {
+      console.log(err);
+    }
+  };
   return {
-    newGame, ready, gameInfo, hit,
+    newGame, ready, gameInfo, hit, stand,
   };
 }

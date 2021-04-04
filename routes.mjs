@@ -31,4 +31,7 @@ export default function bindRoutes(app) {
 
   // update db when player clicks on hit
   app.post('/game/:gameId/hit', GamesController.hit);
+
+  // change turn when player clicks on stand
+  app.post('/game/:gameId/stand', GamesController.stand);
 }

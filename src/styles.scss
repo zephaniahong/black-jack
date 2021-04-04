@@ -1,13 +1,17 @@
-body {
-  background-color: pink;
-}
-
 #player1Table {
-  height: 200px;
+  height: 300px;
   width: 200px;
+  border: 1px solid red;
 }
 
 #player2Table {
-  height: 200px;
+  height: 300px;
   width: 200px;
+  border: 1px solid red;
+}
+
+#dealerTable {
+  height: 300px;
+  width: 200px;
+  border: 1px solid red;
 }

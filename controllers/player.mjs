@@ -43,7 +43,6 @@ export default function initPlayersController(db) {
         },
         include: 'games',
       });
-      console.log(player.games);
       // array of all game ids that logged in user is in
       const gameArray = [];
       for (let i = 0; i < player.games.length; i += 1) {
@@ -58,17 +57,22 @@ export default function initPlayersController(db) {
         include: 'players',
       });
 
+      // array of gameid
+      const gameIdArray = [];
       // array of id of opponents
       const opponentArray = [];
       for (let i = 0; i < opponents.length; i += 1) {
+        gameIdArray.push(opponents[i].id);
         for (let j = 0; j < opponents[i].players.length; j += 1) {
           if (opponents[i].players[j].id !== playerId) {
             opponentArray.push(opponents[i].players[j].id);
           }
         }
       }
+
+      console.log(opponents);
       const playerStats = player.dataValues;
-      res.render('dashboard', { playerStats, gameArray, opponentArray });
+      res.render('dashboard', { playerStats, gameIdArray, opponentArray });
     } catch (err) {
       console.log(err);
     }

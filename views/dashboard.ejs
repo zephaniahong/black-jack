@@ -21,13 +21,13 @@
       </tr>
     </thead>
     <tbody>
-      <% for (let i =0; i < gameArray.length; i += 1) {%>
+      <% for (let i =0; i < gameIdArray.length; i += 1) {%>
       <tr>
         <th scope="row">1</th>
-        <td><%=gameArray[i]%></td>
+        <td><%=gameIdArray[i]%></td>
         <td><%=opponentArray[i]%></td>
         <td>
-          <a href="/game/<%=gameArray[i]%>"
+          <a href="/game/<%=gameIdArray[i]%>"
             ><button class="btn btn-primary">Enter</button></a
           >
         </td>
