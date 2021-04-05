@@ -104,8 +104,11 @@ export default function createGameElements(currentGame) {
     axios.post(`/game/${gameId}/ready/?betAmount=${betInput.value}`)
       .then((response) => {
         const updatedGame = response.data;
+        console.log(updatedGame);
         // update bank
         bankAmount.innerText = updatedGame.bank;
+        // update game banner
+        gameBanner.innerText = `Player ${updatedGame.opponent}'s Turn`;
         if (updatedGame.status === 'in-progress') {
           createGameElements(updatedGame);
         }
@@ -163,9 +166,9 @@ export default function createGameElements(currentGame) {
   } else if (currentGame.status === 'in-progress') {
     displayCards(currentGame);
     if (currentGame.turn === 1) {
-      gameBanner.innerText = `${currentGame.player1Id}'s turn`;
+      gameBanner.innerText = `Player ${currentGame.player1Id}'s turn`;
     } else if (currentGame.turn === 2) {
-      gameBanner.innerText = `${currentGame.player2Id}'s turn`;
+      gameBanner.innerText = `Player ${currentGame.player2Id}'s turn`;
     }
     table.append(actionTable);
     table.appendChild(refreshButton);

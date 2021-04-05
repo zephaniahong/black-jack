@@ -144,7 +144,7 @@ export default function initGamesController(db) {
         player2BetAmount: 0,
       },
       status: 'betting in-progress',
-      turn: player1Id,
+      turn: 0,
       winnerId: null,
     };
     try {
@@ -199,7 +199,7 @@ export default function initGamesController(db) {
 
     let status;
     let turn;
-    if (game.turn === player1Id) {
+    if (game.turn !== loggedInPlayer) {
       status = 'betting in-progress';
       turn = opponent;
     } else {
@@ -256,6 +256,7 @@ export default function initGamesController(db) {
       player1BetAmount: game.gameData.player1BetAmount,
       player2BetAmount: game.gameData.player2BetAmount,
       bank: player.money,
+      opponent,
     });
   };
 
