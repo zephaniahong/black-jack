@@ -63,10 +63,14 @@ export default function createGameElements(currentGame) {
   const player2Bet = document.createElement('p');
   player1Bet.id = 'player1Bet';
   player2Bet.id = 'player2Bet';
-  player1BetArea.appendChild(player1Bet);
-  player2BetArea.appendChild(player2Bet);
+  const bank = document.createElement('div');
+  const bankAmount = document.createElement('h3');
+  bankAmount.innerText = currentGame.bank;
   player1Bet.innerText = `Bet: ${currentGame.player1BetAmount}`;
   player2Bet.innerText = `Bet: ${currentGame.player2BetAmount}`;
+  bank.appendChild(bankAmount);
+  player1BetArea.appendChild(player1Bet);
+  player2BetArea.appendChild(player2Bet);
   player1Table.appendChild(player1Label);
   player2Table.appendChild(player2Label);
   player1Table.appendChild(player1Count);
@@ -75,6 +79,7 @@ export default function createGameElements(currentGame) {
   player2Table.appendChild(player2BetArea);
   table.appendChild(player1Table);
   table.appendChild(player2Table);
+  table.appendChild(bank);
 
   // bet area
   const betArea = document.createElement('div');
@@ -84,7 +89,7 @@ export default function createGameElements(currentGame) {
   betInput.name = 'betInput';
   betInput.type = 'number';
   betInput.min = 1;
-  betInput.max = 100;
+  betInput.max = currentGame.bank;
 
   // new game button
   const newGame = document.createElement('button');
@@ -99,7 +104,8 @@ export default function createGameElements(currentGame) {
     axios.post(`/game/${gameId}/ready/?betAmount=${betInput.value}`)
       .then((response) => {
         const updatedGame = response.data;
-        console.log(updatedGame);
+        // update bank
+        bankAmount.innerText = updatedGame.bank;
         if (updatedGame.status === 'in-progress') {
           createGameElements(updatedGame);
         }
@@ -108,14 +114,10 @@ export default function createGameElements(currentGame) {
 
   // hit and stand and refresh
   const actionTable = document.createElement('div');
-  const betAmount = document.createElement('h3');
-  betAmount.innerText = '$53';
   const hitButton = document.createElement('button');
   const standButton = document.createElement('button');
   hitButton.innerText = 'HIT';
   standButton.innerText = 'STAND';
-
-  actionTable.appendChild(betAmount);
   actionTable.appendChild(hitButton);
   actionTable.appendChild(standButton);
   const refreshButton = document.createElement('button');
@@ -150,7 +152,11 @@ export default function createGameElements(currentGame) {
   // betting in progress, include bet area and ready button
   if (currentGame.status === 'betting in-progress') {
     gameBanner.innerText = 'Place your bets';
+    dealerCount.innerText = '';
+    player1Count.innerText = '';
+    player2Count.innerText = '';
     table.appendChild(betArea);
+    betArea.appendChild(bank);
     betArea.appendChild(betLabel);
     betArea.appendChild(betInput);
     table.appendChild(readyButton);

@@ -144,7 +144,7 @@ export default function initGamesController(db) {
         player2BetAmount: 0,
       },
       status: 'betting in-progress',
-      turn: 1,
+      turn: player1Id,
       winnerId: null,
     };
     try {
@@ -207,6 +207,12 @@ export default function initGamesController(db) {
       turn = player1Id;
     }
 
+    // update logged in player's money
+    // logged in player's money
+    const player = await db.Player.findByPk(loggedInPlayer);
+    player.money -= betAmount;
+    await player.save();
+
     // determine who's bet amount to update
     if (loggedInPlayer === player1Id) {
       await game.update({
@@ -249,6 +255,7 @@ export default function initGamesController(db) {
       player2Id,
       player1BetAmount: game.gameData.player1BetAmount,
       player2BetAmount: game.gameData.player2BetAmount,
+      bank: player.money,
     });
   };
 
@@ -272,6 +279,9 @@ export default function initGamesController(db) {
       }
     }
 
+    // logged in player's money
+    const player = await db.Player.findByPk(loggedInPlayer);
+
     // determines who is player 1 and 2 based on who has the bigger player id
     let player1Id;
     let player2Id;
@@ -294,6 +304,7 @@ export default function initGamesController(db) {
       player2Id,
       player1BetAmount: game.gameData.player1BetAmount,
       player2BetAmount: game.gameData.player2BetAmount,
+      bank: player.money,
     });
   };
 
