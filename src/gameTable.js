@@ -104,7 +104,6 @@ export default function createGameElements(currentGame) {
     axios.post(`/game/${gameId}/ready/?betAmount=${betInput.value}`)
       .then((response) => {
         const updatedGame = response.data;
-        console.log(updatedGame);
         // update bank
         bankAmount.innerText = updatedGame.bank;
         // update game banner
@@ -125,6 +124,14 @@ export default function createGameElements(currentGame) {
   actionTable.appendChild(standButton);
   const refreshButton = document.createElement('button');
   refreshButton.innerText = 'Refresh';
+  refreshButton.addEventListener('click', () => {
+    axios.get(`/game/${gameId}/gameInfo`)
+      .then((response) => {
+        const updatedGame = response.data;
+        // create game elements based on game status
+        createGameElements(updatedGame);
+      });
+  });
 
   // allow player to hit cards
   hitButton.addEventListener('click', () => {
@@ -147,7 +154,14 @@ export default function createGameElements(currentGame) {
           standButton.remove();
           refreshButton.remove();
           table.appendChild(newGame);
-          // update winners and losers
+          // find out who are the winners
+          // facts:
+          // all players
+          const { dealerHand } = updatedGame;
+          const { player1Hand } = updatedGame;
+          const { player2Hand } = updatedGame;
+
+          // distribute money
         }
       });
   });

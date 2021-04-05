@@ -65,7 +65,7 @@ const makeDeck = function () {
       // 1, 11, 12 ,13
       if (cardName === 1) {
         cardName = 'ace';
-        value = 1;
+        value = 11;
       } else if (cardName === 11) {
         cardName = 'jack';
         value = 10;
@@ -95,6 +95,25 @@ const makeDeck = function () {
 
   return deck;
 };
+
+function countValue(handArray) {
+  let sum = 0;
+  for (let i = 0; i < handArray.length; i += 1) {
+    sum += handArray[i].value;
+  }
+  return sum;
+}
+
+function busted(handArray) {
+  const handValue = countValue(handArray);
+  return handValue > 21;
+}
+
+function is21(handArray) {
+  const handValue = countValue(handArray);
+  return handValue === 21;
+}
+
 /*
  * ========================================================
  * ========================================================
@@ -142,6 +161,8 @@ export default function initGamesController(db) {
         player2Hand,
         player1BetAmount: 0,
         player2BetAmount: 0,
+        player1Status: 'in',
+        player2Status: 'in',
       },
       status: 'betting in-progress',
       turn: 0,
@@ -223,6 +244,8 @@ export default function initGamesController(db) {
           player2Hand: game.gameData.player2Hand,
           player1BetAmount: betAmount,
           player2BetAmount: game.gameData.player2BetAmount,
+          player1Status: 'in',
+          player2Status: 'in',
         },
         status,
         turn,
@@ -237,6 +260,8 @@ export default function initGamesController(db) {
           player2Hand: game.gameData.player2Hand,
           player1BetAmount: game.gameData.player1BetAmount,
           player2BetAmount: betAmount,
+          player1Status: 'in',
+          player2Status: 'in',
         },
         status,
         turn,
@@ -346,9 +371,17 @@ export default function initGamesController(db) {
         const newCard = game.gameData.cardDeck.pop();
         if (loggedInPlayer === player1Id) {
           game.gameData.player1Hand.push(newCard);
-        } else {
+          // check if player has busted or got 21
+          // if (busted(game.gameData.player1Hand)) {
+
+          // } else if (is21(game.gameData.player1Hand)) {
+
+          // }
+        }
+        else {
           game.gameData.player2Hand.push(newCard);
         }
+        // await game.save();
         const updatedGame = await db.Game.findByPk(gameId);
         await updatedGame.update({
           gameData: game.gameData,
