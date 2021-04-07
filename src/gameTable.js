@@ -59,6 +59,8 @@ export default function createGameElements(currentGame) {
   player2Banner.innerText = 'Status: ';
   const player1Winnings = document.createElement('p');
   const player2Winnings = document.createElement('p');
+  player1Winnings.id = 'player1Winnings';
+  player2Winnings.id = 'player2Winnings';
   const player1Count = document.createElement('p');
   const player2Count = document.createElement('p');
   player1Count.id = 'player1Count';
@@ -141,6 +143,28 @@ export default function createGameElements(currentGame) {
         }
         if (updatedGame.status === 'in-progress') {
           createGameElements(updatedGame);
+          // disable hit and stand buttons if player got 21 on first deal
+          if (updatedGame.loggedInPlayer === updatedGame.player1Id) {
+            if (updatedGame.player1Status === '21') {
+              hitButton.disabled = true;
+              standButton.disbaled = true;
+              gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
+              player1Winnings.innerText = `Won ${1.5 * updatedGame.player1BetAmount}`;
+              console.log('set inner text of player1 winnings`');
+              bankAmount.innerText = updatedGame.bank;
+              console.log('updated bank amount');
+            }
+          } else if (updatedGame.loggedInPlayer === updatedGame.player1Id) {
+            if (updatedGame.player2Status === '21') {
+              hitButton.disabled = true;
+              standButton.disbaled = true;
+              gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
+              player2Winnings.innerText = `Won ${1.5 * updatedGame.player2BetAmount}`;
+              console.log('set inner text of player2 winnings`');
+              bankAmount.innerText = updatedGame.bank;
+              console.log('updated bank amount');
+            }
+          }
         }
       });
   });

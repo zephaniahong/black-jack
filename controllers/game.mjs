@@ -216,14 +216,14 @@ export default function initGamesController(db) {
       player2Id = loggedInPlayer;
     }
 
-    let status;
-    let turn;
-    if (game.turn !== loggedInPlayer) {
-      status = 'betting in-progress';
-      turn = opponent;
-    } else {
-      status = 'in-progress';
-      turn = player1Id;
+    const player1 = await db.Player.findByPk(player1Id);
+    const player2 = await db.Player.findByPk(player2Id);
+
+    // update player status
+    if (loggedInPlayer === player1Id) {
+      game.gameData.player1Status = 'ready';
+    } else if (loggedInPlayer === player2Id) {
+      game.gameData.player2Status = 'ready';
     }
 
     // update logged in player's money
@@ -232,6 +232,35 @@ export default function initGamesController(db) {
     player.money -= betAmount;
     await player.save();
 
+    let status;
+    let turn;
+    if (game.turn !== loggedInPlayer) {
+      status = 'betting in-progress';
+      turn = opponent;
+    } else {
+      // both players ready, start game
+      status = 'in-progress';
+      turn = player1Id;
+      // check if any player has 21
+      const { player1Hand } = game.gameData;
+      const { player2Hand } = game.gameData;
+      if (is21(player1Hand)) {
+        player1.money += Math.round(2.5 * game.gameData.player1BetAmount);
+        turn = player2Id;
+        game.gameData.player1Status = '21';
+      }
+      if (is21(player2Hand)) {
+        player2.money += Math.round(2.5 * game.gameData.player1BetAmount);
+        turn = player1Id;
+        game.gameData.player2Status = '21';
+      }
+    }
+
+    if (game.gameData.player1Status === 21 && game.gameData.player2Status === 21) {
+      status = 'round over';
+    }
+    await player1.save();
+    await player2.save();
     // determine who's bet amount to update
     if (loggedInPlayer === player1Id) {
       await game.update({
@@ -242,7 +271,7 @@ export default function initGamesController(db) {
           player2Hand: game.gameData.player2Hand,
           player1BetAmount: betAmount,
           player2BetAmount: game.gameData.player2BetAmount,
-          player1Status: 'ready',
+          player1Status: game.gameData.player1Status,
           player2Status: game.gameData.player2Status,
         },
         status,
@@ -259,13 +288,14 @@ export default function initGamesController(db) {
           player1BetAmount: game.gameData.player1BetAmount,
           player2BetAmount: betAmount,
           player1Status: game.gameData.player1Status,
-          player2Status: 'ready',
+          player2Status: game.gameData.player2Status,
         },
         status,
         turn,
         winnerId: null,
       });
     }
+
     res.send({
       gameId: game.id,
       dealerHand: game.gameData.dealerHand,
@@ -386,7 +416,7 @@ export default function initGamesController(db) {
             game.gameData.player1Status = 'BUSTED';
           } else if (is21(game.gameData.player1Hand)) {
             game.turn = player2Id;
-            player1.money += Math.round(1.5 * game.gameData.player1BetAmount);
+            player1.money += Math.round(2.5 * game.gameData.player1BetAmount);
             game.gameData.player1Status = '21';
           }
         }
@@ -399,7 +429,7 @@ export default function initGamesController(db) {
             game.status = 'round over';
           } else if (is21(game.gameData.player2Hand)) {
             game.turn = 0;
-            player2.money += Math.round(1.5 * game.gameData.player1BetAmount);
+            player2.money += Math.round(2.5 * game.gameData.player1BetAmount);
             game.gameData.player2Status = '21';
             game.status = 'round over';
           }
