@@ -422,6 +422,7 @@ export default function initGamesController(db) {
           winnerId: null,
         });
       }
+      const loggedInPlayerdb = await db.Player.findByPk(loggedInPlayer);
 
       res.send({
         gameId: game.id,
@@ -430,6 +431,7 @@ export default function initGamesController(db) {
         player2Hand: game.gameData.player2Hand,
         status: game.status,
         turn: game.turn,
+        bank: loggedInPlayerdb.money,
         player1Id,
         player2Id,
         player1BetAmount: game.gameData.player1BetAmount,

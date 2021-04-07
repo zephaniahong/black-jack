@@ -57,6 +57,8 @@ export default function createGameElements(currentGame) {
   player2Banner.id = 'player2Banner';
   player1Banner.innerText = 'Status: ';
   player2Banner.innerText = 'Status: ';
+  const player1Winnings = document.createElement('p');
+  const player2Winnings = document.createElement('p');
   const player1Count = document.createElement('p');
   const player2Count = document.createElement('p');
   player1Count.id = 'player1Count';
@@ -71,6 +73,7 @@ export default function createGameElements(currentGame) {
   player2Bet.id = 'player2Bet';
   const bank = document.createElement('div');
   const bankAmount = document.createElement('h3');
+  bankAmount.id = 'bankAmount';
   bankAmount.innerText = currentGame.bank;
   player1Bet.innerText = `Bet: ${currentGame.player1BetAmount}`;
   player2Bet.innerText = `Bet: ${currentGame.player2BetAmount}`;
@@ -81,6 +84,8 @@ export default function createGameElements(currentGame) {
   player2Table.appendChild(player2Label);
   player1Table.appendChild(player1Banner);
   player2Table.appendChild(player2Banner);
+  player1Table.appendChild(player1Winnings);
+  player2Table.appendChild(player2Winnings);
   player1Table.appendChild(player1Count);
   player2Table.appendChild(player2Count);
   player1Table.appendChild(player1BetArea);
@@ -170,24 +175,30 @@ export default function createGameElements(currentGame) {
         const updatedGame = response.data;
         console.log(updatedGame);
         displayCards(updatedGame);
+        // update bank banner
+        bankAmount.innerText = `${updatedGame.bank}`;
         // check if player has won/busted
         if ((updatedGame.loggedInPlayer === updatedGame.player1Id) && (updatedGame.player1Status === 'BUSTED')) {
           hitButton.disabled = true;
           standButton.disabled = true;
+          player1Winnings.innerText = `Lost ${updatedGame.player1BetAmount}`;
           // update game banner
           gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
         } else if ((updatedGame.loggedInPlayer === updatedGame.player1Id) && (updatedGame.player1Status === '21')) {
           hitButton.disabled = true;
           standButton.disabled = true;
           gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
+          player1Winnings.innerText = `Won ${1.5 * updatedGame.player1BetAmount}`;
         } else if ((updatedGame.loggedInPlayer === updatedGame.player2Id) && (updatedGame.player2Status === 'BUSTED')) {
           hitButton.disabled = true;
           standButton.disabled = true;
           gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
+          player2Winnings.innerText = `Lost ${updatedGame.player2BetAmount}`;
         } else if ((updatedGame.loggedInPlayer === updatedGame.player2Id) && (updatedGame.player2Status === '21')) {
           hitButton.disabled = true;
           standButton.disabled = true;
           gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
+          player2Winnings.innerText = `Won ${updatedGame.player2BetAmount}`;
         }
         if (updatedGame.status === 'round over') {
           displayCards(updatedGame);
@@ -249,6 +260,11 @@ export default function createGameElements(currentGame) {
       }
     }
   } else if (currentGame.status === 'in-progress') {
+    if (currentGame.turn !== currentGame.loggedInPlayer) {
+      // disable hit and stand buttons if not the player's turn
+      hitButton.disabled = true;
+      standButton.disabled = true;
+    }
     displayCards(currentGame);
     gameBanner.innerText = `Player ${currentGame.turn}'s turn`;
     table.append(actionTable);
