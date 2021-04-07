@@ -21,7 +21,7 @@ export default function displayCards(currentGame) {
   // update game banner
   if (currentGame.status > 0) {
     gameBanner.innerText = `Player ${currentGame.turn}'s Turn`;
-  } else {
+  } else if (currentGame.status === 'round over') {
     gameBanner.innerText = 'Round Over';
   }
 

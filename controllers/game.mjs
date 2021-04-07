@@ -417,7 +417,7 @@ export default function initGamesController(db) {
             player1Status: game.gameData.player1Status,
             player2Status: game.gameData.player2Status,
           },
-          status: 'in-progress',
+          status: game.status,
           turn: game.turn,
           winnerId: null,
         });
