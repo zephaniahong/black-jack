@@ -134,10 +134,8 @@ export default function initGamesController(db) {
     // find random opponent
     const numberOfPlayers = await db.Player.count();
     opponent = Math.floor(Math.random() * numberOfPlayers) + 1;
-    if (opponent === loggedInPlayer) {
-      while (opponent === loggedInPlayer) {
-        opponent = Math.floor(Math.random() * numberOfPlayers) + 1;
-      }
+    while (opponent === loggedInPlayer) {
+      opponent = Math.floor(Math.random() * numberOfPlayers) + 1;
     }
     // determines who is player 1 and 2 based on who has the bigger player id
     let player1Id;
@@ -244,8 +242,8 @@ export default function initGamesController(db) {
           player2Hand: game.gameData.player2Hand,
           player1BetAmount: betAmount,
           player2BetAmount: game.gameData.player2BetAmount,
-          player1Status: 'in',
-          player2Status: 'in',
+          player1Status: 'ready',
+          player2Status: game.gameData.player2Status,
         },
         status,
         turn,
@@ -260,15 +258,14 @@ export default function initGamesController(db) {
           player2Hand: game.gameData.player2Hand,
           player1BetAmount: game.gameData.player1BetAmount,
           player2BetAmount: betAmount,
-          player1Status: 'in',
-          player2Status: 'in',
+          player1Status: game.gameData.player1Status,
+          player2Status: 'ready',
         },
         status,
         turn,
         winnerId: null,
       });
     }
-
     res.send({
       gameId: game.id,
       dealerHand: game.gameData.dealerHand,
@@ -282,6 +279,9 @@ export default function initGamesController(db) {
       player2BetAmount: game.gameData.player2BetAmount,
       bank: player.money,
       opponent,
+      loggedInPlayer,
+      player1Status: game.gameData.player1Status,
+      player2Status: game.gameData.player2Status,
     });
   };
 
@@ -331,6 +331,9 @@ export default function initGamesController(db) {
       player1BetAmount: game.gameData.player1BetAmount,
       player2BetAmount: game.gameData.player2BetAmount,
       bank: player.money,
+      player1Status: game.gameData.player1Status,
+      player2Status: game.gameData.player2Status,
+      loggedInPlayer,
     });
   };
 
@@ -365,6 +368,12 @@ export default function initGamesController(db) {
         player1Id = opponent;
         player2Id = loggedInPlayer;
       }
+
+      const updatedGame = await db.Game.findByPk(gameId);
+
+      // get players' info
+      const player1 = await db.Player.findByPk(player1Id);
+      const player2 = await db.Player.findByPk(player2Id);
       // only allow to hit card if its the logged in player's turn
       if (game.turn === loggedInPlayer) {
         // pop card of deck and deal to logged in player
@@ -372,21 +381,44 @@ export default function initGamesController(db) {
         if (loggedInPlayer === player1Id) {
           game.gameData.player1Hand.push(newCard);
           // check if player has busted or got 21
-          // if (busted(game.gameData.player1Hand)) {
-
-          // } else if (is21(game.gameData.player1Hand)) {
-
-          // }
+          if (busted(game.gameData.player1Hand)) {
+            game.turn = player2Id;
+            game.gameData.player1Status = 'BUSTED';
+          } else if (is21(game.gameData.player1Hand)) {
+            game.turn = player2Id;
+            player1.money += Math.round(1.5 * game.gameData.player1BetAmount);
+            game.gameData.player1Status = '21';
+          }
         }
         else {
           game.gameData.player2Hand.push(newCard);
+          // check if player has busted or got 21
+          if (busted(game.gameData.player2Hand)) {
+            game.turn = 0;
+            game.gameData.player2Status = 'BUSTED';
+            game.status = 'round over';
+          } else if (is21(game.gameData.player2Hand)) {
+            game.turn = 0;
+            player2.money += Math.round(1.5 * game.gameData.player1BetAmount);
+            game.gameData.player2Status = '21';
+            game.status = 'round over';
+          }
         }
-        // await game.save();
-        const updatedGame = await db.Game.findByPk(gameId);
+        await player1.save();
+        await player2.save();
         await updatedGame.update({
-          gameData: game.gameData,
+          gameData: {
+            cardDeck: game.gameData.cardDeck,
+            dealerHand: game.gameData.dealerHand,
+            player1Hand: game.gameData.player1Hand,
+            player2Hand: game.gameData.player2Hand,
+            player1BetAmount: game.gameData.player1BetAmount,
+            player2BetAmount: game.gameData.player2BetAmount,
+            player1Status: game.gameData.player1Status,
+            player2Status: game.gameData.player2Status,
+          },
           status: 'in-progress',
-          turn: loggedInPlayer,
+          turn: game.turn,
           winnerId: null,
         });
       }
@@ -402,6 +434,9 @@ export default function initGamesController(db) {
         player2Id,
         player1BetAmount: game.gameData.player1BetAmount,
         player2BetAmount: game.gameData.player2BetAmount,
+        player1Status: game.gameData.player1Status,
+        player2Status: game.gameData.player2Status,
+        loggedInPlayer,
       });
     } catch (err) {
       console.log(err);
@@ -443,13 +478,7 @@ export default function initGamesController(db) {
       if (game.turn === loggedInPlayer) {
         // TODO if player 2 hits stand, deal cards for dealer
         if (game.turn === player2Id) {
-          const { dealerHand } = game.gameData;
-
-          // check sum of dealer hand and deal while less than 17
-          let dealerHandCount = 0;
-          for (let i = 0; i < dealerHand.length; i += 1) {
-            dealerHandCount += dealerHand[i].value;
-          }
+          let dealerHandCount = countValue(game.gameData.dealerHand);
           while (dealerHandCount < 17) {
             const newCard = game.gameData.cardDeck.pop();
             game.gameData.dealerHand.push(newCard);
@@ -474,6 +503,9 @@ export default function initGamesController(db) {
             player2Id,
             player1BetAmount: updatedGame.gameData.player1BetAmount,
             player2BetAmount: updatedGame.gameData.player2BetAmount,
+            player1Status: game.gameData.player1Status,
+            player2Status: game.gameData.player2Status,
+            loggedInPlayer,
           });
         } else {
           await game.update({
@@ -493,6 +525,9 @@ export default function initGamesController(db) {
             player2Id,
             player1BetAmount: game.gameData.player1BetAmount,
             player2BetAmount: game.gameData.player2BetAmount,
+            player1Status: game.gameData.player1Status,
+            player2Status: game.gameData.player2Status,
+            loggedInPlayer,
           });
         } }
     }

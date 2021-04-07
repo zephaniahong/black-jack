@@ -51,6 +51,12 @@ export default function createGameElements(currentGame) {
   const player2Label = document.createElement('h3');
   player1Label.innerText = `Player ${currentGame.player1Id}`;
   player2Label.innerText = `Player ${currentGame.player2Id}`;
+  const player1Banner = document.createElement('p');
+  const player2Banner = document.createElement('p');
+  player1Banner.id = 'player1Banner';
+  player2Banner.id = 'player2Banner';
+  player1Banner.innerText = 'Status: ';
+  player2Banner.innerText = 'Status: ';
   const player1Count = document.createElement('p');
   const player2Count = document.createElement('p');
   player1Count.id = 'player1Count';
@@ -73,6 +79,8 @@ export default function createGameElements(currentGame) {
   player2BetArea.appendChild(player2Bet);
   player1Table.appendChild(player1Label);
   player2Table.appendChild(player2Label);
+  player1Table.appendChild(player1Banner);
+  player2Table.appendChild(player2Banner);
   player1Table.appendChild(player1Count);
   player2Table.appendChild(player2Count);
   player1Table.appendChild(player1BetArea);
@@ -92,22 +100,36 @@ export default function createGameElements(currentGame) {
   betInput.max = currentGame.bank;
 
   // new game button
-  const newGame = document.createElement('button');
-  newGame.innerText = 'New Game!';
+  const newGameButton = document.createElement('button');
+  newGameButton.innerText = 'New Game!';
 
   // ready button
   const readyButton = document.createElement('button');
   readyButton.id = 'readyButton';
   readyButton.innerText = 'READY!';
   readyButton.addEventListener('click', () => {
-    readyButton.disabled = true;
     axios.post(`/game/${gameId}/ready/?betAmount=${betInput.value}`)
       .then((response) => {
         const updatedGame = response.data;
+        console.log(updatedGame);
         // update bank
         bankAmount.innerText = updatedGame.bank;
         // update game banner
         gameBanner.innerText = `Player ${updatedGame.opponent}'s Turn`;
+
+        // update player banners depending on who clicked ready
+        // disable ready button if they clicked it once before - their status in ready in the db
+        if (updatedGame.loggedInPlayer === updatedGame.player1Id) {
+          player1Banner.innerText = `Status: ${updatedGame.player1Status}`;
+          if (updatedGame.player1Status === 'ready') {
+            readyButton.disabled = true;
+          }
+        } else {
+          player2Banner.innerText = `Status: ${updatedGame.player2Status}`;
+          if (updatedGame.player2Status === 'ready') {
+            readyButton.disabled = true;
+          }
+        }
         if (updatedGame.status === 'in-progress') {
           createGameElements(updatedGame);
         }
@@ -128,8 +150,12 @@ export default function createGameElements(currentGame) {
     axios.get(`/game/${gameId}/gameInfo`)
       .then((response) => {
         const updatedGame = response.data;
+        console.log(updatedGame);
         // create game elements based on game status
         createGameElements(updatedGame);
+        // player banners
+        player1Banner.innerText = updatedGame.player1Status;
+        player2Banner.innerText = updatedGame.player2Status;
       });
   });
 
@@ -138,7 +164,33 @@ export default function createGameElements(currentGame) {
     axios.post(`/game/${gameId}/hit`)
       .then((response) => {
         const updatedGame = response.data;
+        console.log(updatedGame);
         displayCards(updatedGame);
+        // check if player has won/busted
+        if ((updatedGame.loggedInPlayer === updatedGame.player1Id) && (updatedGame.player1Status === 'BUSTED')) {
+          hitButton.disabled = true;
+          standButton.disabled = true;
+          // player1Banner.innerText = `Status`;
+        } else if ((updatedGame.loggedInPlayer === updatedGame.player1Id) && (updatedGame.player1Status === '21')) {
+          hitButton.disabled = true;
+          standButton.disabled = true;
+          // player1Banner.innerText = 'Status: 21!';
+        } else if ((updatedGame.loggedInPlayer === updatedGame.player2Id) && (updatedGame.player2Status === 'BUSTED')) {
+          hitButton.disabled = true;
+          standButton.disabled = true;
+          // player2Banner.innerText = 'Status: BUSTED';
+        } else if ((updatedGame.loggedInPlayer === updatedGame.player2Id) && (updatedGame.player2Status === '21')) {
+          hitButton.disabled = true;
+          standButton.disabled = true;
+          // player2Banner.innerText = 'Status: 21!';
+        }
+        if (updatedGame.status === 'round over') {
+          displayCards(updatedGame);
+          hitButton.remove();
+          standButton.remove();
+          refreshButton.remove();
+          table.appendChild(newGameButton);
+        }
       });
   });
 
@@ -153,7 +205,7 @@ export default function createGameElements(currentGame) {
           hitButton.remove();
           standButton.remove();
           refreshButton.remove();
-          table.appendChild(newGame);
+          table.appendChild(newGameButton);
           // find out who are the winners
           // facts:
           // all players
@@ -169,6 +221,8 @@ export default function createGameElements(currentGame) {
   // betting in progress, include bet area and ready button
   if (currentGame.status === 'betting in-progress') {
     gameBanner.innerText = 'Place your bets';
+    player1Banner.innerText = `Status: ${currentGame.player1Status}`;
+    player2Banner.innerText = `Status: ${currentGame.player2Status}`;
     dealerCount.innerText = '';
     player1Count.innerText = '';
     player2Count.innerText = '';
@@ -177,6 +231,16 @@ export default function createGameElements(currentGame) {
     betArea.appendChild(betLabel);
     betArea.appendChild(betInput);
     table.appendChild(readyButton);
+    table.appendChild(refreshButton);
+    if (currentGame.loggedInPlayer === currentGame.player1Id) {
+      if (currentGame.player1Status === 'ready') {
+        readyButton.disabled = true;
+      }
+    } else if (currentGame.loggedInPlayer === currentGame.player2Id) {
+      if (currentGame.player2Status === 'ready') {
+        readyButton.disabled = true;
+      }
+    }
   } else if (currentGame.status === 'in-progress') {
     displayCards(currentGame);
     if (currentGame.turn === 1) {
@@ -189,6 +253,6 @@ export default function createGameElements(currentGame) {
   } else if (currentGame.status === 'round over') {
     displayCards(currentGame);
     gameBanner.innerText = 'Round Over';
-    table.appendChild(newGame);
+    table.appendChild(newGameButton);
   }
 }

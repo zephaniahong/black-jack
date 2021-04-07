@@ -69,8 +69,6 @@ export default function initPlayersController(db) {
           }
         }
       }
-
-      console.log(opponents);
       const playerStats = player.dataValues;
       res.render('dashboard', { playerStats, gameIdArray, opponentArray });
     } catch (err) {

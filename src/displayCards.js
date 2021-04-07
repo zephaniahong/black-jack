@@ -14,10 +14,20 @@ export default function displayCards(currentGame) {
   const player1Count = document.querySelector('#player1Count');
   const player2Count = document.querySelector('#player2Count');
   const gameBanner = document.querySelector('#gameBanner');
+  const player1Banner = document.querySelector('#player1Banner');
+  const player2Banner = document.querySelector('#player2Banner');
   const player1Bet = document.querySelector('#player1Bet');
   const player2Bet = document.querySelector('#player2Bet');
   // update game banner
-  gameBanner.innerText = `Player ${currentGame.turn}'s Turn`;
+  if (currentGame.status > 0) {
+    gameBanner.innerText = `Player ${currentGame.turn}'s Turn`;
+  } else {
+    gameBanner.innerText = 'Round Over';
+  }
+
+  // update player banner status
+  player1Banner.innerText = `Status: ${currentGame.player1Status}`;
+  player2Banner.innerText = `Status: ${currentGame.player2Status}`;
 
   // update bet amounts
   player1Bet.innerText = `Bet: ${currentGame.player1BetAmount}`;
