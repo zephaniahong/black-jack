@@ -1,6 +1,12 @@
 import axios from 'axios';
 import displayCards from './displayCards.js';
 import countValue from './countValue.js';
+import updateGameBanner from './updateGameBanner.js';
+import updateBetAmount from './updateBetAmount.js';
+import updatePlayerBanners from './updatePlayerBanners.js';
+import updateButtons from './updateButtons.js';
+import updatePlayerWinnings from './updatePlayerWinnings.js';
+import updateBankAmount from './updateBankAmount.js';
 
 // get game id to set as global variable
 const urlPath = window.location.pathname;
@@ -107,8 +113,17 @@ export default function createGameElements(currentGame) {
   betInput.max = currentGame.bank;
 
   // new game button
-  const newGameButton = document.createElement('button');
-  newGameButton.innerText = 'New Game!';
+  const dealButton = document.createElement('button');
+  dealButton.id = 'dealButton';
+  dealButton.innerText = 'Deal Again!';
+  dealButton.addEventListener('click', () => {
+    axios.get(`/game/${gameId}/deal`)
+      .then((response) => {
+        const updatedGame = response.data;
+        console.log(updatedGame);
+        updateButtons(updatedGame);
+      });
+  });
 
   // ready button
   const readyButton = document.createElement('button');
@@ -119,53 +134,19 @@ export default function createGameElements(currentGame) {
       .then((response) => {
         const updatedGame = response.data;
         console.log(updatedGame);
-        // update bank
-        bankAmount.innerText = updatedGame.bank;
-        // update game banner
-        gameBanner.innerText = `Player ${updatedGame.opponent}'s Turn`;
-
-        // update players' bet amounts
-        player1Bet.innerText = `Bet: ${updatedGame.player1BetAmount}`;
-        player2Bet.innerText = `Bet: ${updatedGame.player2BetAmount}`;
-
-        // update player banners depending on who clicked ready
-        // disable ready button if they clicked it once before - their status in ready in the db
-        if (updatedGame.loggedInPlayer === updatedGame.player1Id) {
-          player1Banner.innerText = `Status: ${updatedGame.player1Status}`;
-          if (updatedGame.player1Status === 'ready') {
-            readyButton.disabled = true;
-          }
-        } else {
-          player2Banner.innerText = `Status: ${updatedGame.player2Status}`;
-          if (updatedGame.player2Status === 'ready') {
-            readyButton.disabled = true;
-          }
-        }
         if (updatedGame.status === 'in-progress') {
           createGameElements(updatedGame);
-          // disable hit and stand buttons if player got 21 on first deal
-          if (updatedGame.loggedInPlayer === updatedGame.player1Id) {
-            if (updatedGame.player1Status === '21') {
-              hitButton.disabled = true;
-              standButton.disbaled = true;
-              gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
-              player1Winnings.innerText = `Won ${1.5 * updatedGame.player1BetAmount}`;
-              console.log('set inner text of player1 winnings`');
-              bankAmount.innerText = updatedGame.bank;
-              console.log('updated bank amount');
-            }
-          } else if (updatedGame.loggedInPlayer === updatedGame.player1Id) {
-            if (updatedGame.player2Status === '21') {
-              hitButton.disabled = true;
-              standButton.disbaled = true;
-              gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
-              player2Winnings.innerText = `Won ${1.5 * updatedGame.player2BetAmount}`;
-              console.log('set inner text of player2 winnings`');
-              bankAmount.innerText = updatedGame.bank;
-              console.log('updated bank amount');
-            }
-          }
         }
+        // update bank
+        updateBankAmount(updatedGame);
+        // update game banner
+        updateGameBanner(updatedGame);
+        // update players' bet amounts
+        updateBetAmount(updatedGame.player1BetAmount, updatedGame.player2BetAmount);
+        // update player banners depending on who clicked ready
+        updatePlayerBanners(updatedGame);
+        // disable ready button if they clicked it once before - their status in ready in the db
+        updateButtons(updatedGame);
       });
   });
 
@@ -173,6 +154,8 @@ export default function createGameElements(currentGame) {
   const actionTable = document.createElement('div');
   const hitButton = document.createElement('button');
   const standButton = document.createElement('button');
+  hitButton.id = 'hitButton';
+  standButton.id = 'standButton';
   hitButton.innerText = 'HIT';
   standButton.innerText = 'STAND';
   actionTable.appendChild(hitButton);
@@ -187,8 +170,7 @@ export default function createGameElements(currentGame) {
         // create game elements based on game status
         createGameElements(updatedGame);
         // player banners
-        player1Banner.innerText = updatedGame.player1Status;
-        player2Banner.innerText = updatedGame.player2Status;
+        updatePlayerBanners(updatedGame);
       });
   });
 
@@ -200,36 +182,18 @@ export default function createGameElements(currentGame) {
         console.log(updatedGame);
         displayCards(updatedGame);
         // update bank banner
-        bankAmount.innerText = `${updatedGame.bank}`;
+        updateBankAmount(updatedGame);
         // check if player has won/busted
-        if ((updatedGame.loggedInPlayer === updatedGame.player1Id) && (updatedGame.player1Status === 'BUSTED')) {
-          hitButton.disabled = true;
-          standButton.disabled = true;
-          player1Winnings.innerText = `Lost ${updatedGame.player1BetAmount}`;
-          // update game banner
-          gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
-        } else if ((updatedGame.loggedInPlayer === updatedGame.player1Id) && (updatedGame.player1Status === '21')) {
-          hitButton.disabled = true;
-          standButton.disabled = true;
-          gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
-          player1Winnings.innerText = `Won ${1.5 * updatedGame.player1BetAmount}`;
-        } else if ((updatedGame.loggedInPlayer === updatedGame.player2Id) && (updatedGame.player2Status === 'BUSTED')) {
-          hitButton.disabled = true;
-          standButton.disabled = true;
-          gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
-          player2Winnings.innerText = `Lost ${updatedGame.player2BetAmount}`;
-        } else if ((updatedGame.loggedInPlayer === updatedGame.player2Id) && (updatedGame.player2Status === '21')) {
-          hitButton.disabled = true;
-          standButton.disabled = true;
-          gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
-          player2Winnings.innerText = `Won ${updatedGame.player2BetAmount}`;
-        }
+        updateButtons(updatedGame);
+        updatePlayerWinnings(updatedGame);
+        updateGameBanner(updatedGame);
+
         if (updatedGame.status === 'round over') {
           displayCards(updatedGame);
           hitButton.remove();
           standButton.remove();
           refreshButton.remove();
-          table.appendChild(newGameButton);
+          table.appendChild(dealButton);
         }
       });
   });
@@ -239,13 +203,16 @@ export default function createGameElements(currentGame) {
     axios.post(`/game/${gameId}/stand`)
       .then((response) => {
         const updatedGame = response.data;
+        console.log(updatedGame);
         displayCards(updatedGame);
+        updateGameBanner(updatedGame);
+        updateButtons(updatedGame);
+        updatePlayerWinnings(updatedGame);
         if (updatedGame.status === 'round over') {
-          gameBanner.innerText = 'Round Over';
           hitButton.remove();
           standButton.remove();
           refreshButton.remove();
-          table.appendChild(newGameButton);
+          table.appendChild(dealButton);
           // find out who are the winners
           // facts:
           // all players
@@ -260,54 +227,41 @@ export default function createGameElements(currentGame) {
 
   // betting in progress, include bet area and ready button
   if (currentGame.status === 'betting in-progress') {
-    gameBanner.innerText = 'Place your bets';
-    player1Banner.innerText = `Status: ${currentGame.player1Status}`;
-    player2Banner.innerText = `Status: ${currentGame.player2Status}`;
-    dealerCount.innerText = '';
-    player1Count.innerText = '';
-    player2Count.innerText = '';
     table.appendChild(betArea);
     betArea.appendChild(bank);
     betArea.appendChild(betLabel);
     betArea.appendChild(betInput);
     table.appendChild(readyButton);
     table.appendChild(refreshButton);
-
-    if (currentGame.loggedInPlayer === currentGame.player1Id) {
-      // disable ready buttons if player has clicked it before
-      if (currentGame.player1Status === 'ready') {
-        readyButton.disabled = true;
-      }
-    } else if (currentGame.loggedInPlayer === currentGame.player2Id) {
-      if (currentGame.player2Status === 'ready') {
-        readyButton.disabled = true;
-      }
-    }
+    updateGameBanner(currentGame);
+    updatePlayerBanners(currentGame);
+    updateButtons(currentGame);
+    dealerCount.innerText = '';
+    player1Count.innerText = '';
+    player2Count.innerText = '';
+  } else if (currentGame.status === 'deal in-progress') {
+    table.appendChild(betArea);
+    betArea.appendChild(bank);
+    table.appendChild(dealButton);
+    table.appendChild(refreshButton);
+    updateGameBanner(currentGame);
+    updatePlayerBanners(currentGame);
+    updateButtons(currentGame);
+    dealerCount.innerText = '';
+    player1Count.innerText = '';
+    player2Count.innerText = '';
   } else if (currentGame.status === 'in-progress') {
-    if (currentGame.turn !== currentGame.loggedInPlayer) {
-      // disable hit and stand buttons if not the player's turn
-      hitButton.disabled = true;
-      standButton.disabled = true;
-    }
     displayCards(currentGame);
-    gameBanner.innerText = `Player ${currentGame.turn}'s turn`;
     table.append(actionTable);
     table.appendChild(refreshButton);
-    if (currentGame.loggedInPlayer === currentGame.player1Id) {
-      // disable hit and stand buttons if player is busted or has 21
-      if (currentGame.player1Status === 'BUSTED' || currentGame.player1Status === '21') {
-        hitButton.disabled = true;
-        standButton.disabled = true;
-      }
-    } else if (currentGame.loggedInPlayer === currentGame.player2Id) {
-      if (currentGame.player2Status === 'BUSTED' || currentGame.player2Status === '21') {
-        hitButton.disabled = true;
-        standButton.disabled = true;
-      }
-    }
+    updateGameBanner(currentGame);
+    updateButtons(currentGame);
+    updatePlayerWinnings(currentGame);
   } else if (currentGame.status === 'round over') {
+    table.appendChild(dealButton);
+    table.appendChild(refreshButton);
     displayCards(currentGame);
-    gameBanner.innerText = 'Round Over';
-    table.appendChild(newGameButton);
+    updatePlayerWinnings(currentGame);
+    updateGameBanner(currentGame);
   }
 }

@@ -34,4 +34,7 @@ export default function bindRoutes(app) {
 
   // change turn when player clicks on stand
   app.post('/game/:gameId/stand', GamesController.stand);
+
+  // deal new hand to both players
+  app.get('/game/:gameId/deal', GamesController.deal);
 }

@@ -567,7 +567,101 @@ export default function initGamesController(db) {
       console.log(err);
     }
   };
+
+  const deal = async (req, res) => {
+    const { gameId } = req.params;
+    const loggedInPlayer = Number(req.cookies.playerId);
+    let opponent;
+
+    try {
+    // get info of current game
+      const game = await db.Game.findOne({
+        where: {
+          id: gameId,
+        },
+        include: 'players',
+      });
+
+      // get opponent id
+      for (let i = 0; i < game.players.length; i += 1) {
+        if (game.players[i].id !== loggedInPlayer) {
+          opponent = game.players[i].id;
+        }
+      }
+      // determines who is player 1 and 2 based on who has the bigger player id
+      let player1Id;
+      let player2Id;
+      if (loggedInPlayer < opponent) {
+        player1Id = loggedInPlayer;
+        player2Id = opponent;
+      } else {
+        player1Id = opponent;
+        player2Id = loggedInPlayer;
+      }
+
+      // shuffle new deck
+      const cardDeck = shuffleCards(makeDeck());
+      const dealerHand = [cardDeck.pop(), cardDeck.pop()];
+      const player1Hand = [cardDeck.pop(), cardDeck.pop()];
+      const player2Hand = [cardDeck.pop(), cardDeck.pop()];
+      game.gameData.player1Status = 'deal';
+      game.gameData.player2Status = 'deal';
+
+      // update player status if they click on deal again
+      if (loggedInPlayer === player1Id) {
+        game.gameData.player1Status = 'in';
+        if (game.turn !== loggedInPlayer) {
+          game.turn = opponent;
+          game.status = 'deal in-progress';
+        } else {
+          game.turn = player1Id;
+          game.status = 'in-progress';
+        }
+      } else if (loggedInPlayer === player2Id) {
+        game.gameData.player2Status = 'in';
+        if (game.turn !== loggedInPlayer) {
+          game.turn = opponent;
+          game.status = 'deal in-progress';
+        } else {
+          game.turn = player1Id;
+          game.status = 'in-progress';
+        }
+      }
+      await game.update({
+        gameData: {
+          cardDeck: game.gameData.cardDeck,
+          dealerHand: game.gameData.dealerHand,
+          player1Hand: game.gameData.player1Hand,
+          player2Hand: game.gameData.player2Hand,
+          player1BetAmount: 0,
+          player2BetAmount: 0,
+          player1Status: game.gameData.player1Status,
+          player2Status: game.gameData.player2Status,
+        },
+        status: game.status,
+        turn: game.turn,
+        winnerId: null,
+      });
+      res.send({
+        gameId: game.id,
+        dealerHand: game.gameData.dealerHand,
+        player1Hand: game.gameData.player1Hand,
+        player2Hand: game.gameData.player2Hand,
+        status: game.status,
+        turn: game.turn,
+        player1Id,
+        player2Id,
+        player1BetAmount: game.gameData.player1BetAmount,
+        player2BetAmount: game.gameData.player2BetAmount,
+        player1Status: game.gameData.player1Status,
+        player2Status: game.gameData.player2Status,
+        loggedInPlayer,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
   return {
-    newGame, ready, gameInfo, hit, stand,
+    newGame, ready, gameInfo, hit, stand, deal,
   };
 }
