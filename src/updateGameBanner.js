@@ -24,5 +24,7 @@ export default function updateGameBanner(updatedGame) {
         gameBanner.innerText = `Player ${updatedGame.turn}'s turn`;
       }
     }
+  } else if (updatedGame.status === 'deal in-progress') {
+    gameBanner.innerText = 'Round Over';
   }
 }

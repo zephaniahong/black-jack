@@ -22,6 +22,14 @@ module.exports = {
           'sass-loader',
         ],
       },
+      {
+        test: /\.html$/,
+        use: ['html-loader'],
+      },
+      {
+        test: /\.jpeg$/,
+        use: ['file-loader'],
+      },
     ],
   },
 };

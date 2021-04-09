@@ -121,6 +121,9 @@ export default function createGameElements(currentGame) {
       .then((response) => {
         const updatedGame = response.data;
         console.log(updatedGame);
+        if (updatedGame.status === 'betting in-progress') {
+          createGameElements(updatedGame);
+        }
         updateButtons(updatedGame);
       });
   });
@@ -147,6 +150,7 @@ export default function createGameElements(currentGame) {
         updatePlayerBanners(updatedGame);
         // disable ready button if they clicked it once before - their status in ready in the db
         updateButtons(updatedGame);
+        updatePlayerWinnings(updatedGame);
       });
   });
 
@@ -180,6 +184,11 @@ export default function createGameElements(currentGame) {
       .then((response) => {
         const updatedGame = response.data;
         console.log(updatedGame);
+        if (updatedGame.status === 'round over') {
+          hitButton.remove();
+          standButton.remove();
+          table.appendChild(dealButton);
+        }
         displayCards(updatedGame);
         // update bank banner
         updateBankAmount(updatedGame);
@@ -187,14 +196,7 @@ export default function createGameElements(currentGame) {
         updateButtons(updatedGame);
         updatePlayerWinnings(updatedGame);
         updateGameBanner(updatedGame);
-
-        if (updatedGame.status === 'round over') {
-          displayCards(updatedGame);
-          hitButton.remove();
-          standButton.remove();
-          refreshButton.remove();
-          table.appendChild(dealButton);
-        }
+        updatePlayerBanners(updatedGame);
       });
   });
 
@@ -204,24 +206,18 @@ export default function createGameElements(currentGame) {
       .then((response) => {
         const updatedGame = response.data;
         console.log(updatedGame);
+        if (updatedGame.status === 'round over') {
+          hitButton.remove();
+          standButton.remove();
+          table.appendChild(dealButton);
+          table.appendChild(refreshButton);
+        }
         displayCards(updatedGame);
         updateGameBanner(updatedGame);
         updateButtons(updatedGame);
         updatePlayerWinnings(updatedGame);
-        if (updatedGame.status === 'round over') {
-          hitButton.remove();
-          standButton.remove();
-          refreshButton.remove();
-          table.appendChild(dealButton);
-          // find out who are the winners
-          // facts:
-          // all players
-          const { dealerHand } = updatedGame;
-          const { player1Hand } = updatedGame;
-          const { player2Hand } = updatedGame;
-
-          // distribute money
-        }
+        updatePlayerBanners(updatedGame);
+        updateBankAmount(updatedGame);
       });
   });
 

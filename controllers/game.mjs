@@ -13,7 +13,50 @@ const { Op } = sequelizePackage;
  * ========================================================
  * ========================================================
  */
+// create an array to store all the names of the images
+const nums = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king'];
+const suitsholder = ['Diamonds', 'Hearts', 'Clubs', 'Spades'];
+const imgholder = [];
+for (let i = 0; i < 13; i += 1) {
+  imgholder.push([]);
+  for (let j = 0; j < 4; j += 1) {
+    imgholder[i].push(`${nums[i]}of${suitsholder[j]}.jpg`);
+  }
+}
 
+// creating a deck of cards
+const makeDeck = () => {
+  const newDeck = [];
+  for (let i = 1; i <= 13; i += 1) {
+    const suits = ['♦', '♥', '♣', '♠'];
+    for (let j = 0; j < suits.length; j += 1) {
+      let name = `${i}`;
+      let value = i;
+      if (name === '1') {
+        name = 'A';
+        value = 11;
+      } else if (name === '11') {
+        name = 'J';
+        value = 10;
+      } else if (name === '12') {
+        name = 'Q';
+        value = 10;
+      } else if (name === '13') {
+        name = 'K';
+        value = 10;
+      }
+
+      const card = {
+        value,
+        suit: suits[j],
+        img: imgholder[i - 1][j],
+        name,
+      };
+      newDeck.push(card);
+    }
+  }
+  return newDeck;
+};
 // get a random index from an array given it's size
 const getRandomIndex = function (size) {
   return Math.floor(Math.random() * size);
@@ -45,56 +88,56 @@ const shuffleCards = function (cards) {
   return cards;
 };
 
-const makeDeck = function () {
-  // create the empty deck at the beginning
-  const deck = [];
+// const makeDeck = function () {
+//   // create the empty deck at the beginning
+//   const deck = [];
 
-  const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+//   const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
 
-  let suitIndex = 0;
-  while (suitIndex < suits.length) {
-    // make a variable of the current suit
-    const currentSuit = suits[suitIndex];
+//   let suitIndex = 0;
+//   while (suitIndex < suits.length) {
+//     // make a variable of the current suit
+//     const currentSuit = suits[suitIndex];
 
-    // loop to create all cards in this suit
-    // rank 1-13
-    let rankCounter = 1;
-    while (rankCounter <= 13) {
-      let cardName = rankCounter;
-      let value = rankCounter;
-      // 1, 11, 12 ,13
-      if (cardName === 1) {
-        cardName = 'ace';
-        value = 11;
-      } else if (cardName === 11) {
-        cardName = 'jack';
-        value = 10;
-      } else if (cardName === 12) {
-        cardName = 'queen';
-        value = 10;
-      } else if (cardName === 13) {
-        cardName = 'king';
-        value = 10;
-      }
+//     // loop to create all cards in this suit
+//     // rank 1-13
+//     let rankCounter = 1;
+//     while (rankCounter <= 13) {
+//       let cardName = rankCounter;
+//       let value = rankCounter;
+//       // 1, 11, 12 ,13
+//       if (cardName === 1) {
+//         cardName = 'ace';
+//         value = 11;
+//       } else if (cardName === 11) {
+//         cardName = 'jack';
+//         value = 10;
+//       } else if (cardName === 12) {
+//         cardName = 'queen';
+//         value = 10;
+//       } else if (cardName === 13) {
+//         cardName = 'king';
+//         value = 10;
+//       }
 
-      // make a single card object variable
-      const card = {
-        name: cardName,
-        suit: currentSuit,
-        rank: rankCounter,
-        value,
-      };
+//       // make a single card object variable
+//       const card = {
+//         name: cardName,
+//         suit: currentSuit,
+//         rank: rankCounter,
+//         value,
+//       };
 
-      // add the card to the deck
-      deck.push(card);
+//       // add the card to the deck
+//       deck.push(card);
 
-      rankCounter += 1;
-    }
-    suitIndex += 1;
-  }
+//       rankCounter += 1;
+//     }
+//     suitIndex += 1;
+//   }
 
-  return deck;
-};
+//   return deck;
+// };
 
 function countValue(handArray) {
   let sum = 0;
@@ -506,6 +549,10 @@ export default function initGamesController(db) {
         player2Id = loggedInPlayer;
       }
 
+      const player1 = await db.Player.findByPk(player1Id);
+      const player2 = await db.Player.findByPk(player2Id);
+      const loggedInPlayerdb = await db.Player.findByPk(loggedInPlayer);
+
       // only allow logged in player to click stand button
       if (game.turn === loggedInPlayer) {
         // TODO if player 2 hits stand, deal cards for dealer
@@ -516,6 +563,53 @@ export default function initGamesController(db) {
             game.gameData.dealerHand.push(newCard);
             dealerHandCount += newCard.value;
           }
+          // if dealer bust, all players whose status still ready will win money
+          if (dealerHandCount > 21) {
+            if (game.gameData.player1Status === 'ready') {
+              game.gameData.player1Status = 'WON';
+              player1.money += 2 * game.gameData.player1BetAmount;
+            } else if (game.gameData.player2Status === 'ready') {
+              game.gameData.player2Status = 'WON';
+              player2.money += 2 * game.gameData.player2BetAmount;
+            }
+            // if dealer gets 21, all who haven't busted/get 21 loses money
+          } else if (dealerHandCount === 21) {
+            if (game.gameData.player1Status === 'ready') {
+              game.gameData.player1Status = 'LOST';
+            } else if (game.gameData.player2Status === 'ready') {
+              game.gameData.player2Status = 'LOST';
+            }
+            // if dealer never bust, distribute money to those who higher than dealer
+          } else if (dealerHandCount < 21) {
+            if (game.gameData.player1Status === 'ready') {
+              if (countValue(game.gameData.player1Hand) < dealerHandCount) {
+                game.gameData.player1Status = 'LOST';
+              }
+              else if (countValue(game.gameData.player1Hand) > dealerHandCount) {
+                game.gameData.player1Status = 'WON';
+                player1.money += 2 * game.gameData.player1BetAmount;
+              }
+              else if (countValue(game.gameData.player1Hand) === dealerHandCount) {
+                game.gameData.player1Status = 'DRAW';
+                player1.money += game.gameData.player1BetAmount;
+              }
+            } else if (game.gameData.player2Status === 'ready') {
+              if (countValue(game.gameData.player2Hand) < dealerHandCount) {
+                game.gameData.player2Status = 'LOST';
+              }
+              else if (countValue(game.gameData.player2Hand) > dealerHandCount) {
+                game.gameData.player2Status = 'WON';
+                player2.money += 2 * game.gameData.player2BetAmount;
+              }
+              else if (countValue(game.gameData.player2Hand) === dealerHandCount) {
+                game.gameData.player2Status = 'DRAW';
+                player2.money += game.gameData.player2BetAmount;
+              }
+            }
+          }
+
+          await player1.save();
+          await player2.save();
 
           const updatedGame = await db.Game.findByPk(gameId);
           await updatedGame.update({
@@ -533,6 +627,7 @@ export default function initGamesController(db) {
             turn: updatedGame.turn,
             player1Id,
             player2Id,
+            bank: loggedInPlayerdb.money,
             player1BetAmount: updatedGame.gameData.player1BetAmount,
             player2BetAmount: updatedGame.gameData.player2BetAmount,
             player1Status: game.gameData.player1Status,
@@ -599,6 +694,7 @@ export default function initGamesController(db) {
         player2Id = loggedInPlayer;
       }
 
+      const loggedInPlayerdb = await db.Player.findByPk(loggedInPlayer);
       // shuffle new deck
       const cardDeck = shuffleCards(makeDeck());
       const dealerHand = [cardDeck.pop(), cardDeck.pop()];
@@ -614,8 +710,9 @@ export default function initGamesController(db) {
           game.turn = opponent;
           game.status = 'deal in-progress';
         } else {
-          game.turn = player1Id;
-          game.status = 'in-progress';
+          game.turn = 0;
+          game.gameData.player2Status = 'in';
+          game.status = 'betting in-progress';
         }
       } else if (loggedInPlayer === player2Id) {
         game.gameData.player2Status = 'in';
@@ -623,16 +720,17 @@ export default function initGamesController(db) {
           game.turn = opponent;
           game.status = 'deal in-progress';
         } else {
-          game.turn = player1Id;
-          game.status = 'in-progress';
+          game.gameData.player1Status = 'in';
+          game.turn = 0;
+          game.status = 'betting in-progress';
         }
       }
       await game.update({
         gameData: {
-          cardDeck: game.gameData.cardDeck,
-          dealerHand: game.gameData.dealerHand,
-          player1Hand: game.gameData.player1Hand,
-          player2Hand: game.gameData.player2Hand,
+          cardDeck,
+          dealerHand,
+          player1Hand,
+          player2Hand,
           player1BetAmount: 0,
           player2BetAmount: 0,
           player1Status: game.gameData.player1Status,
@@ -649,6 +747,7 @@ export default function initGamesController(db) {
         player2Hand: game.gameData.player2Hand,
         status: game.status,
         turn: game.turn,
+        bank: loggedInPlayerdb.money,
         player1Id,
         player2Id,
         player1BetAmount: game.gameData.player1BetAmount,

@@ -16,10 +16,28 @@ export default function displayCards(currentGame) {
 
   // dealer hand
   for (let i = 0; i < currentGame.dealerHand.length; i += 1) {
-    dealerCount.innerText = countValue(currentGame.dealerHand);
+    if (currentGame.status === 'round over') {
+      dealerCount.innerText = countValue(currentGame.dealerHand);
+    } else if (currentGame.status === 'in-progress') {
+      dealerCount.innerText = countValue(currentGame.dealerHand[0]);
+    }
+
     const dealerHand = document.createElement('p');
     dealerHand.classList.add('card');
-    dealerHand.innerText = `${currentGame.dealerHand[i].name} of ${currentGame.dealerHand[i].suit}`;
+    if (i === 1) {
+      dealerHand.classList.add('hideDealerCard');
+    }
+    if (currentGame.status === 'round over') {
+      dealerHand.classList.remove('hideDealerCard');
+    }
+    // dealerHand.innerText = `${currentGame.dealerHand[i].name} of ${currentGame.dealerHand[i].suit}`;
+    dealerHand.innerHTML = (
+      <img>
+        `$
+        {currentGame.dealerHand[i].img}
+        `
+      </img>
+    );
     dealerTable.appendChild(dealerHand);
   }
 
