@@ -1,4 +1,12 @@
 import countValue from './countValue.js';
+// import all images from imgs directory
+function importAll(r) {
+  const images = {};
+  r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });
+  return images;
+}
+
+const images = importAll(require.context('./imgs', false, /\.(png|jpe?g|svg)$/));
 
 export default function displayCards(currentGame) {
   // clear all existing cards
@@ -16,7 +24,7 @@ export default function displayCards(currentGame) {
 
   // dealer hand
   for (let i = 0; i < currentGame.dealerHand.length; i += 1) {
-    const dealerHand = document.createElement('p');
+    const dealerHand = new Image();
     if (currentGame.status === 'round over') {
       dealerCount.innerText = countValue(currentGame.dealerHand);
     } else if (currentGame.status === 'in-progress') {
@@ -29,24 +37,25 @@ export default function displayCards(currentGame) {
     if (currentGame.status === 'round over') {
       dealerHand.classList.remove('hideDealerCard');
     }
-    dealerHand.innerText = `${currentGame.dealerHand[i].name} of ${currentGame.dealerHand[i].suit}`;
+    dealerHand.src = images[`${currentGame.dealerHand[i].img}`];
     dealerTable.appendChild(dealerHand);
   }
 
   // player 1 hand
   for (let i = 0; i < currentGame.player1Hand.length; i += 1) {
+    const player1Hand = new Image();
     player1Count.innerText = countValue(currentGame.player1Hand);
-    const player1Hand = document.createElement('p');
     player1Hand.classList.add('card');
-    player1Hand.innerText = `${currentGame.player1Hand[i].name} of ${currentGame.player1Hand[i].suit}`;
+    player1Hand.src = images[`${currentGame.player1Hand[i].img}`];
     player1Table.appendChild(player1Hand);
   }
 
   // player 2 hand
   for (let i = 0; i < currentGame.player2Hand.length; i += 1) {
+    const player2Hand = new Image();
     player2Count.innerText = countValue(currentGame.player2Hand);
-    const player2Hand = document.createElement('p');
     player2Hand.classList.add('card');
+    player2Hand.src = images[`${currentGame.player2Hand[i].img}`];
     player2Hand.innerText = `${currentGame.player2Hand[i].name} of ${currentGame.player2Hand[i].suit}`;
     player2Table.appendChild(player2Hand);
   }

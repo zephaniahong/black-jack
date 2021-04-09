@@ -23,6 +23,7 @@ export default function createGameElements(currentGame) {
   const gameContainer = document.createElement('div');
   gameContainer.id = 'gameContainer';
   gameContainer.classList.add('container');
+  const statsContainer = document.createElement('div');
 
   // game banner
   const gameBanner = document.createElement('div');
@@ -35,6 +36,7 @@ export default function createGameElements(currentGame) {
   table.classList.add('row');
   // append global elements
   document.body.appendChild(gameContainer);
+  document.body.appendChild(statsContainer);
   gameContainer.appendChild(gameBanner);
   gameContainer.appendChild(table);
 
