@@ -1,3 +1,16 @@
+#statsContainer {
+  background-color: antiquewhite;
+  height: 100vh;
+}
+
+#table {
+  height: 100vh;
+}
+
+.cardTable {
+  height: 30%;
+}
+
 #gameBanner {
   justify-content: center;
 }
@@ -19,5 +32,7 @@
 }
 
 .card {
-  height: 200px;
+  height: 56%;
+  width: auto;
+  // width: 150px;
 }

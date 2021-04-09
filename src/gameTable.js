@@ -22,8 +22,9 @@ export default function createGameElements(currentGame) {
   // create elements for new game
   const gameContainer = document.createElement('div');
   gameContainer.id = 'gameContainer';
-  gameContainer.classList.add('container');
-  const statsContainer = document.createElement('div');
+  gameContainer.classList.add('container-fluid');
+  const mainRow = document.createElement('div');
+  mainRow.classList.add('row');
 
   // game banner
   const gameBanner = document.createElement('div');
@@ -31,18 +32,28 @@ export default function createGameElements(currentGame) {
   gameBanner.classList.add('row');
   gameBanner.id = 'gameBanner';
 
+  // stats column
+  const statsContainer = document.createElement('div');
+  statsContainer.id = 'statsContainer';
+  statsContainer.classList.add('col-3');
+
   // game table
   const table = document.createElement('div');
-  table.classList.add('row');
+  table.id = 'table';
+  table.classList.add('col-9');
   // append global elements
+
   document.body.appendChild(gameContainer);
   document.body.appendChild(statsContainer);
-  gameContainer.appendChild(gameBanner);
-  gameContainer.appendChild(table);
+  statsContainer.appendChild(gameBanner);
+  gameContainer.appendChild(mainRow);
+  mainRow.appendChild(statsContainer);
+  mainRow.appendChild(table);
 
   // dealer tables
   const dealerTable = document.createElement('div');
-  dealerTable.classList.add('col-12');
+  dealerTable.classList.add('row');
+  dealerTable.classList.add('cardTable');
   dealerTable.id = 'dealerTable';
   const dealerName = document.createElement('h3');
   dealerName.innerText = 'Dealer';
@@ -50,14 +61,16 @@ export default function createGameElements(currentGame) {
   dealerCount.id = 'dealerCount';
   dealerCount.innerText = countValue(currentGame.dealerHand);
   dealerTable.appendChild(dealerName);
-  dealerTable.appendChild(dealerCount);
+  statsContainer.appendChild(dealerCount);
   table.appendChild(dealerTable);
 
   // player tables
   const player1Table = document.createElement('div');
   const player2Table = document.createElement('div');
-  player1Table.classList.add('col-6');
-  player2Table.classList.add('col-6');
+  player1Table.classList.add('row');
+  player1Table.classList.add('cardTable');
+  player2Table.classList.add('row');
+  player2Table.classList.add('cardTable');
   player1Table.id = 'player1Table';
   player2Table.id = 'player2Table';
   const player1Label = document.createElement('h3');
@@ -80,8 +93,6 @@ export default function createGameElements(currentGame) {
   player2Count.id = 'player2Count';
   player1Count.innerText = countValue(currentGame.player1Hand);
   player2Count.innerText = countValue(currentGame.player2Hand);
-  const player1BetArea = document.createElement('div');
-  const player2BetArea = document.createElement('div');
   const player1Bet = document.createElement('p');
   const player2Bet = document.createElement('p');
   player1Bet.id = 'player1Bet';
@@ -96,18 +107,21 @@ export default function createGameElements(currentGame) {
   player1Bet.innerText = `Bet: ${currentGame.player1BetAmount}`;
   player2Bet.innerText = `Bet: ${currentGame.player2BetAmount}`;
   bank.appendChild(bankAmount);
-  player1BetArea.appendChild(player1Bet);
-  player2BetArea.appendChild(player2Bet);
+
+  // player 1 stats
+  statsContainer.appendChild(player1Banner);
+  statsContainer.appendChild(player1Bet);
+  statsContainer.appendChild(player1Winnings);
+  statsContainer.appendChild(player1Count);
   player1Table.appendChild(player1Label);
+
+  // player 2 stats
+  statsContainer.appendChild(player2Banner);
+  statsContainer.appendChild(player2Bet);
+  statsContainer.appendChild(player2Winnings);
+  statsContainer.appendChild(player2Count);
   player2Table.appendChild(player2Label);
-  player1Table.appendChild(player1Banner);
-  player2Table.appendChild(player2Banner);
-  player1Table.appendChild(player1Winnings);
-  player2Table.appendChild(player2Winnings);
-  player1Table.appendChild(player1Count);
-  player2Table.appendChild(player2Count);
-  player1Table.appendChild(player1BetArea);
-  player2Table.appendChild(player2BetArea);
+
   table.appendChild(player1Table);
   table.appendChild(player2Table);
   table.appendChild(bank);
@@ -182,9 +196,10 @@ export default function createGameElements(currentGame) {
   actionTable.appendChild(hitButton);
   actionTable.appendChild(standButton);
   const refreshButton = document.createElement('button');
+  actionTable.appendChild(refreshButton);
   refreshButton.id = 'refreshButton';
   // refreshButton.classList.add('row');
-  refreshButton.classList.add('col-12');
+  refreshButton.classList.add('col-4');
   refreshButton.innerText = 'Refresh';
   refreshButton.addEventListener('click', () => {
     axios.get(`/game/${gameId}/gameInfo`)
@@ -230,7 +245,7 @@ export default function createGameElements(currentGame) {
           hitButton.remove();
           standButton.remove();
           table.appendChild(dealButton);
-          table.appendChild(refreshButton);
+          actionTable.appendChild(refreshButton);
         }
         displayCards(updatedGame);
         updateGameBanner(updatedGame);
@@ -248,7 +263,7 @@ export default function createGameElements(currentGame) {
     betArea.appendChild(betLabel);
     betArea.appendChild(betInput);
     table.appendChild(readyButton);
-    table.appendChild(refreshButton);
+    actionTable.appendChild(refreshButton);
     updateGameBanner(currentGame);
     updatePlayerBanners(currentGame);
     updateButtons(currentGame);
@@ -259,7 +274,7 @@ export default function createGameElements(currentGame) {
     table.appendChild(betArea);
     betArea.appendChild(bank);
     table.appendChild(dealButton);
-    table.appendChild(refreshButton);
+    actionTable.appendChild(refreshButton);
     updateGameBanner(currentGame);
     updatePlayerBanners(currentGame);
     updateButtons(currentGame);
@@ -269,13 +284,13 @@ export default function createGameElements(currentGame) {
   } else if (currentGame.status === 'in-progress') {
     displayCards(currentGame);
     table.append(actionTable);
-    table.appendChild(refreshButton);
+    actionTable.appendChild(refreshButton);
     updateGameBanner(currentGame);
     updateButtons(currentGame);
     updatePlayerWinnings(currentGame);
   } else if (currentGame.status === 'round over') {
     table.appendChild(dealButton);
-    table.appendChild(refreshButton);
+    actionTable.appendChild(refreshButton);
     displayCards(currentGame);
     updatePlayerWinnings(currentGame);
     updateGameBanner(currentGame);
