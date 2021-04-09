@@ -1,21 +1,19 @@
-#player1Table {
-  height: 400px;
-  width: 200px;
-  border: 1px solid red;
+#gameBanner {
+  justify-content: center;
 }
-
-#player2Table {
-  height: 400px;
-  width: 200px;
-  border: 1px solid red;
-}
-
-#dealerTable {
-  height: 200px;
-  width: 200px;
-  border: 1px solid red;
+#bank {
+  text-align: center;
 }
 
 .hideDealerCard {
   display: none;
+}
+
+#refreshButton {
+  text-align: center;
+  justify-content: center;
+}
+
+#actionTable {
+  justify-content: center;
 }

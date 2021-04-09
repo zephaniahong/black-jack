@@ -26,11 +26,13 @@ export default function createGameElements(currentGame) {
 
   // game banner
   const gameBanner = document.createElement('div');
+  gameBanner.classList.add('h1');
+  gameBanner.classList.add('row');
   gameBanner.id = 'gameBanner';
 
   // game table
   const table = document.createElement('div');
-
+  table.classList.add('row');
   // append global elements
   document.body.appendChild(gameContainer);
   gameContainer.appendChild(gameBanner);
@@ -38,6 +40,7 @@ export default function createGameElements(currentGame) {
 
   // dealer tables
   const dealerTable = document.createElement('div');
+  dealerTable.classList.add('col-12');
   dealerTable.id = 'dealerTable';
   const dealerName = document.createElement('h3');
   dealerName.innerText = 'Dealer';
@@ -51,6 +54,8 @@ export default function createGameElements(currentGame) {
   // player tables
   const player1Table = document.createElement('div');
   const player2Table = document.createElement('div');
+  player1Table.classList.add('col-6');
+  player2Table.classList.add('col-6');
   player1Table.id = 'player1Table';
   player2Table.id = 'player2Table';
   const player1Label = document.createElement('h3');
@@ -80,6 +85,9 @@ export default function createGameElements(currentGame) {
   player1Bet.id = 'player1Bet';
   player2Bet.id = 'player2Bet';
   const bank = document.createElement('div');
+  bank.id = 'bank';
+  bank.classList.add('row');
+
   const bankAmount = document.createElement('h3');
   bankAmount.id = 'bankAmount';
   bankAmount.innerText = currentGame.bank;
@@ -104,9 +112,12 @@ export default function createGameElements(currentGame) {
 
   // bet area
   const betArea = document.createElement('div');
+  betArea.classList.add('row');
+  betArea.classList.add('justify-content');
   const betLabel = document.createElement('label');
   betLabel.innerText = 'BET: ';
   const betInput = document.createElement('input');
+  betInput.classList.add('col-6');
   betInput.name = 'betInput';
   betInput.type = 'number';
   betInput.min = 1;
@@ -156,8 +167,12 @@ export default function createGameElements(currentGame) {
 
   // hit and stand and refresh
   const actionTable = document.createElement('div');
+  actionTable.id = 'actionTable';
+  actionTable.classList.add('row');
   const hitButton = document.createElement('button');
+  hitButton.classList.add('col-3');
   const standButton = document.createElement('button');
+  standButton.classList.add('col-3');
   hitButton.id = 'hitButton';
   standButton.id = 'standButton';
   hitButton.innerText = 'HIT';
@@ -165,6 +180,9 @@ export default function createGameElements(currentGame) {
   actionTable.appendChild(hitButton);
   actionTable.appendChild(standButton);
   const refreshButton = document.createElement('button');
+  refreshButton.id = 'refreshButton';
+  // refreshButton.classList.add('row');
+  refreshButton.classList.add('col-12');
   refreshButton.innerText = 'Refresh';
   refreshButton.addEventListener('click', () => {
     axios.get(`/game/${gameId}/gameInfo`)

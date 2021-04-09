@@ -25,38 +25,38 @@ for (let i = 0; i < 13; i += 1) {
 }
 
 // creating a deck of cards
-const makeDeck = () => {
-  const newDeck = [];
-  for (let i = 1; i <= 13; i += 1) {
-    const suits = ['♦', '♥', '♣', '♠'];
-    for (let j = 0; j < suits.length; j += 1) {
-      let name = `${i}`;
-      let value = i;
-      if (name === '1') {
-        name = 'A';
-        value = 11;
-      } else if (name === '11') {
-        name = 'J';
-        value = 10;
-      } else if (name === '12') {
-        name = 'Q';
-        value = 10;
-      } else if (name === '13') {
-        name = 'K';
-        value = 10;
-      }
+// const makeDeck = () => {
+//   const newDeck = [];
+//   for (let i = 1; i <= 13; i += 1) {
+//     const suits = ['♦', '♥', '♣', '♠'];
+//     for (let j = 0; j < suits.length; j += 1) {
+//       let name = `${i}`;
+//       let value = i;
+//       if (name === '1') {
+//         name = 'A';
+//         value = 11;
+//       } else if (name === '11') {
+//         name = 'J';
+//         value = 10;
+//       } else if (name === '12') {
+//         name = 'Q';
+//         value = 10;
+//       } else if (name === '13') {
+//         name = 'K';
+//         value = 10;
+//       }
 
-      const card = {
-        value,
-        suit: suits[j],
-        img: imgholder[i - 1][j],
-        name,
-      };
-      newDeck.push(card);
-    }
-  }
-  return newDeck;
-};
+//       const card = {
+//         value,
+//         suit: suits[j],
+//         img: imgholder[i - 1][j],
+//         name,
+//       };
+//       newDeck.push(card);
+//     }
+//   }
+//   return newDeck;
+// };
 // get a random index from an array given it's size
 const getRandomIndex = function (size) {
   return Math.floor(Math.random() * size);
@@ -88,56 +88,56 @@ const shuffleCards = function (cards) {
   return cards;
 };
 
-// const makeDeck = function () {
-//   // create the empty deck at the beginning
-//   const deck = [];
+const makeDeck = function () {
+  // create the empty deck at the beginning
+  const deck = [];
 
-//   const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+  const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
 
-//   let suitIndex = 0;
-//   while (suitIndex < suits.length) {
-//     // make a variable of the current suit
-//     const currentSuit = suits[suitIndex];
+  let suitIndex = 0;
+  while (suitIndex < suits.length) {
+    // make a variable of the current suit
+    const currentSuit = suits[suitIndex];
 
-//     // loop to create all cards in this suit
-//     // rank 1-13
-//     let rankCounter = 1;
-//     while (rankCounter <= 13) {
-//       let cardName = rankCounter;
-//       let value = rankCounter;
-//       // 1, 11, 12 ,13
-//       if (cardName === 1) {
-//         cardName = 'ace';
-//         value = 11;
-//       } else if (cardName === 11) {
-//         cardName = 'jack';
-//         value = 10;
-//       } else if (cardName === 12) {
-//         cardName = 'queen';
-//         value = 10;
-//       } else if (cardName === 13) {
-//         cardName = 'king';
-//         value = 10;
-//       }
+    // loop to create all cards in this suit
+    // rank 1-13
+    let rankCounter = 1;
+    while (rankCounter <= 13) {
+      let cardName = rankCounter;
+      let value = rankCounter;
+      // 1, 11, 12 ,13
+      if (cardName === 1) {
+        cardName = 'ace';
+        value = 11;
+      } else if (cardName === 11) {
+        cardName = 'jack';
+        value = 10;
+      } else if (cardName === 12) {
+        cardName = 'queen';
+        value = 10;
+      } else if (cardName === 13) {
+        cardName = 'king';
+        value = 10;
+      }
 
-//       // make a single card object variable
-//       const card = {
-//         name: cardName,
-//         suit: currentSuit,
-//         rank: rankCounter,
-//         value,
-//       };
+      // make a single card object variable
+      const card = {
+        name: cardName,
+        suit: currentSuit,
+        rank: rankCounter,
+        value,
+      };
 
-//       // add the card to the deck
-//       deck.push(card);
+      // add the card to the deck
+      deck.push(card);
 
-//       rankCounter += 1;
-//     }
-//     suitIndex += 1;
-//   }
+      rankCounter += 1;
+    }
+    suitIndex += 1;
+  }
 
-//   return deck;
-// };
+  return deck;
+};
 
 function countValue(handArray) {
   let sum = 0;
