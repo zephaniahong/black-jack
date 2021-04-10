@@ -26,9 +26,9 @@ export default function displayCards(currentGame) {
   for (let i = 0; i < currentGame.dealerHand.length; i += 1) {
     const dealerHand = new Image();
     if (currentGame.status === 'round over') {
-      dealerCount.innerText = countValue(currentGame.dealerHand);
+      dealerCount.innerText = `Dealer's Count: ${countValue(currentGame.dealerHand)}`;
     } else if (currentGame.status === 'in-progress') {
-      dealerCount.innerText = currentGame.dealerHand[0].value;
+      dealerCount.innerText = `Dealer's Count: ${currentGame.dealerHand[0].value}`;
     }
     dealerHand.classList.add('card');
     if (i === 1) {
@@ -44,7 +44,7 @@ export default function displayCards(currentGame) {
   // player 1 hand
   for (let i = 0; i < currentGame.player1Hand.length; i += 1) {
     const player1Hand = new Image();
-    player1Count.innerText = countValue(currentGame.player1Hand);
+    player1Count.innerText = `Player 1's Count: ${countValue(currentGame.player1Hand)}`;
     player1Hand.classList.add('card');
     player1Hand.src = images[`${currentGame.player1Hand[i].img}`];
     player1Table.appendChild(player1Hand);
@@ -53,7 +53,7 @@ export default function displayCards(currentGame) {
   // player 2 hand
   for (let i = 0; i < currentGame.player2Hand.length; i += 1) {
     const player2Hand = new Image();
-    player2Count.innerText = countValue(currentGame.player2Hand);
+    player2Count.innerText = `Player 2's Count: ${countValue(currentGame.player2Hand)}`;
     player2Hand.classList.add('card');
     player2Hand.src = images[`${currentGame.player2Hand[i].img}`];
     player2Hand.innerText = `${currentGame.player2Hand[i].name} of ${currentGame.player2Hand[i].suit}`;

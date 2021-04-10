@@ -41,8 +41,8 @@ export default function createGameElements(currentGame) {
   const table = document.createElement('div');
   table.id = 'table';
   table.classList.add('col-9');
-  // append global elements
 
+  // append global elements
   document.body.appendChild(gameContainer);
   document.body.appendChild(statsContainer);
   statsContainer.appendChild(gameBanner);
@@ -57,11 +57,20 @@ export default function createGameElements(currentGame) {
   dealerTable.id = 'dealerTable';
   const dealerName = document.createElement('h3');
   dealerName.innerText = 'Dealer';
+  dealerTable.appendChild(dealerName);
+
+  // dealer stats
+  const dealerStats = document.createElement('div');
+  dealerStats.classList.add('row');
+  dealerStats.classList.add('stats');
+  const dealerStatsLabel = document.createElement('h3');
+  dealerStatsLabel.innerText = 'Dealer';
   const dealerCount = document.createElement('p');
   dealerCount.id = 'dealerCount';
   dealerCount.innerText = countValue(currentGame.dealerHand);
-  dealerTable.appendChild(dealerName);
-  statsContainer.appendChild(dealerCount);
+  statsContainer.appendChild(dealerStats);
+  dealerStats.appendChild(dealerStatsLabel);
+  dealerStats.appendChild(dealerCount);
   table.appendChild(dealerTable);
 
   // player tables
@@ -77,6 +86,14 @@ export default function createGameElements(currentGame) {
   const player2Label = document.createElement('h3');
   player1Label.innerText = `Player ${currentGame.player1Id}`;
   player2Label.innerText = `Player ${currentGame.player2Id}`;
+
+  // player stats
+  const player1Stats = document.createElement('div');
+  const player2Stats = document.createElement('div');
+  player1Stats.classList.add('row');
+  player2Stats.classList.add('row');
+  player1Stats.classList.add('stats');
+  player2Stats.classList.add('stats');
   const player1Banner = document.createElement('p');
   const player2Banner = document.createElement('p');
   player1Banner.id = 'player1Banner';
@@ -85,6 +102,8 @@ export default function createGameElements(currentGame) {
   player2Banner.innerText = 'Status: ';
   const player1Winnings = document.createElement('p');
   const player2Winnings = document.createElement('p');
+  player1Winnings.innerText = "Player 1's Winnings: ";
+  player2Winnings.innerText = "Player 2's Winnings: ";
   player1Winnings.id = 'player1Winnings';
   player2Winnings.id = 'player2Winnings';
   const player1Count = document.createElement('p');
@@ -109,17 +128,19 @@ export default function createGameElements(currentGame) {
   bank.appendChild(bankAmount);
 
   // player 1 stats
-  statsContainer.appendChild(player1Banner);
-  statsContainer.appendChild(player1Bet);
-  statsContainer.appendChild(player1Winnings);
-  statsContainer.appendChild(player1Count);
+  statsContainer.appendChild(player1Stats);
+  player1Stats.appendChild(player1Banner);
+  player1Stats.appendChild(player1Bet);
+  player1Stats.appendChild(player1Winnings);
+  player1Stats.appendChild(player1Count);
   player1Table.appendChild(player1Label);
 
   // player 2 stats
-  statsContainer.appendChild(player2Banner);
-  statsContainer.appendChild(player2Bet);
-  statsContainer.appendChild(player2Winnings);
-  statsContainer.appendChild(player2Count);
+  statsContainer.appendChild(player2Stats);
+  player2Stats.appendChild(player2Banner);
+  player2Stats.appendChild(player2Bet);
+  player2Stats.appendChild(player2Winnings);
+  player2Stats.appendChild(player2Count);
   player2Table.appendChild(player2Label);
 
   table.appendChild(player1Table);

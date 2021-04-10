@@ -6,9 +6,14 @@
 #table {
   height: 100vh;
 }
-
+.stats {
+  height: 30%;
+  align-content: flex-start;
+}
 .cardTable {
   height: 30%;
+  text-align: center;
+  justify-content: center;
 }
 
 #gameBanner {
